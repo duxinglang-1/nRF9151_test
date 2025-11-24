@@ -24,6 +24,7 @@
 #include "nb.h"
 #include "external_flash.h"
 #include "fota_mqtt.h"
+#include "screen.h"
 #include "logger.h"
 
 //#define FOTA_DEBUG
@@ -180,6 +181,8 @@ void fota_exit(void)
 {
 	fota_run_flag = false;
 	fota_cur_status = FOTA_STATUS_MAX;
+	LCD_Set_BL_Mode(LCD_BL_AUTO);
+	ExitFOTAScreen();
 }
 
 static void VerCheckkTimerOutCallBack(struct k_timer *timer_id)
@@ -249,6 +252,8 @@ void fota_start(void)
 	{
 		fota_run_flag = true;
 		fota_cur_status = FOTA_STATUS_PREPARE;
+		
+		EnterFOTAScreen();		
 	}
 }
 
@@ -270,10 +275,9 @@ void fota_start_confirm(void)
 		MenuStopWifi();
 #endif
 
-	fota_run_flag = true;
 	fota_cur_status = FOTA_STATUS_LINKING;
 	fota_redraw_pro_flag = true;
-
+	LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
 	mqtt_unlink();
 	modem_configure();
 	k_work_schedule_for_queue(app_work_q, &fota_work, K_SECONDS(2));
@@ -356,6 +360,11 @@ void fota_init(void)
 
 void FOTARedrawProgress(void)
 {
+	if(screen_id == SCREEN_ID_FOTA)
+	{
+		scr_msg[screen_id].para |= SCREEN_EVENT_UPDATE_FOTA;
+		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
 }
 
 void MenuStartFOTA(void)
@@ -403,6 +412,10 @@ void FotaMsgProc(void)
 		{
 			dl_font_start();
 		}
+		else if((strcmp(g_new_str_ver,g_str_ver) != 0) && (strlen(g_new_str_ver) > 0))
+		{
+			dl_str_start();
+		}
 	#ifdef CONFIG_PPG_SUPPORT
 		else if((strcmp(g_new_ppg_ver,g_ppg_algo_ver) != 0) && (strlen(g_new_ppg_ver) > 0))
 		{
@@ -412,6 +425,7 @@ void FotaMsgProc(void)
 		else
 	#endif		
 		{
+			LCD_Clear(BLACK);
 			sys_reboot(1);
 		}
 	}

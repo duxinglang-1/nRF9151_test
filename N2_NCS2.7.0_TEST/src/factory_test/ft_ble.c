@@ -15,7 +15,7 @@
 #include "screen.h"
 #include "settings.h"
 #include "key.h"
-#include "uart_ble.h"
+#include "uart.h"
 #include "ft_main.h"
 #include "ft_ble.h"
 		
@@ -111,7 +111,7 @@ static void BleTestTimerOutCallBack(struct k_timer *timer_id)
 			
 		case 2:
 			ft_ble_checking = false;
-			if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf52810_ver) > 0))
+			if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf5340_ver) > 0))
 			{
 				ft_ble_check_ok = true;
 				ft_menu_checked[ft_main_menu_index] = true;
@@ -163,7 +163,7 @@ static void FTMenuBleUpdate(void)
 			LCD_MeasureUniString(ver_str, &w, &h);
 			LCD_ShowUniString(FT_BLE_MENU_STR_X, FT_BLE_MENU_STR_Y+(FT_BLE_MENU_STR_H-h)/2+2*FT_BLE_MENU_STR_H, ver_str);
 
-			if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf52810_ver) > 0))
+			if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf5340_ver) > 0))
 			{
 				ft_ble_check_ok = true;
 				ft_menu_checked[ft_main_menu_index] = true;
@@ -172,7 +172,7 @@ static void FTMenuBleUpdate(void)
 				mmi_asc_to_ucs2(tmpbuf, g_ble_mac_addr);
 				LCD_MeasureUniString(tmpbuf, &w, &h);
 				LCD_ShowUniString(FT_BLE_MENU_STR_X, FT_BLE_MENU_STR_Y+(FT_BLE_MENU_STR_H-h)/2+1*FT_BLE_MENU_STR_H, tmpbuf);
-				mmi_asc_to_ucs2(tmpbuf, &g_nrf52810_ver[15]);
+				mmi_asc_to_ucs2(tmpbuf, &g_nrf5340_ver[15]);
 				LCD_MeasureUniString(tmpbuf, &w, &h);
 				LCD_ShowUniString(FT_BLE_MENU_STR_X, FT_BLE_MENU_STR_Y+(FT_BLE_MENU_STR_H-h)/2+3*FT_BLE_MENU_STR_H, tmpbuf);
 			}
@@ -253,7 +253,7 @@ static void FTMenuBleShow(void)
 	LCD_MeasureUniString(title_str, &w, &h);
 	LCD_ShowUniString(FT_BLE_TITLE_X+(FT_BLE_TITLE_W-w)/2, FT_BLE_TITLE_Y, title_str);
 
-	if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf52810_ver) > 0))
+	if((strlen(g_ble_mac_addr) > 0)&&(strlen(g_nrf5340_ver) > 0))
 	{
 		uint8_t tmpbuf[256] = {0};
 
@@ -267,7 +267,7 @@ static void FTMenuBleShow(void)
 		mmi_asc_to_ucs2(tmpbuf, g_ble_mac_addr);
 		LCD_MeasureUniString(tmpbuf, &w, &h);
 		LCD_ShowUniString(FT_BLE_MENU_STR_X, FT_BLE_MENU_STR_Y+(FT_BLE_MENU_STR_H-h)/2+1*FT_BLE_MENU_STR_H, tmpbuf);
-		mmi_asc_to_ucs2(tmpbuf, &g_nrf52810_ver[15]);
+		mmi_asc_to_ucs2(tmpbuf, &g_nrf5340_ver[15]);
 		LCD_MeasureUniString(tmpbuf, &w, &h);
 		LCD_ShowUniString(FT_BLE_MENU_STR_X, FT_BLE_MENU_STR_Y+(FT_BLE_MENU_STR_H-h)/2+3*FT_BLE_MENU_STR_H, tmpbuf);
 	}
@@ -347,7 +347,7 @@ void EnterFTMenuBle(void)
 	scr_msg[SCREEN_ID_FACTORY_TEST].act = SCREEN_ACTION_ENTER;
 	scr_msg[SCREEN_ID_FACTORY_TEST].status = SCREEN_STATUS_CREATING;
 
-	if((strlen(g_ble_mac_addr) == 0)||(strlen(g_nrf52810_ver) == 0))
+	if((strlen(g_ble_mac_addr) == 0)||(strlen(g_nrf5340_ver) == 0))
 	{
 		ft_ble_status = 1;
 	}

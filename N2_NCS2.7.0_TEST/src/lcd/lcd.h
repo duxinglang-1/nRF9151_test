@@ -91,6 +91,13 @@ typedef enum
 	LCD_BL_MAX
 }LCD_BL_MODE;
 
+typedef enum
+{
+	SHOW_ALIGN_CENTER,
+	SHOW_ALIGN_BOUNDARY,
+	SHOW_ALIGN_MAX
+}LCD_SHOW_ALIGN_ENUM;
+
 void LCD_Fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 void LCD_Pic_Fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, unsigned char *color);
 void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
@@ -115,6 +122,8 @@ void LCD_dis_pic_trans_rotate(uint16_t x, uint16_t y, unsigned char *color, uint
 void LCD_MeasureUniString(uint16_t *p, uint16_t *width, uint16_t *height);
 void LCD_ShowUniString(uint16_t x, uint16_t y, uint16_t *p);
 void LCD_ShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p);
+void LCD_ShowUniStringRtoL(uint16_t x, uint16_t y, uint16_t *p);
+void LCD_ShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p);
 #endif/*FONTMAKER_UNICODE_FONT*/
 
 #endif

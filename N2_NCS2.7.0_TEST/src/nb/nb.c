@@ -43,7 +43,7 @@
 
 //#define NB_DEBUG
 
-#define MQTT_CONNECTED_KEEP_TIME	(30)
+#define MQTT_CONNECTED_KEEP_TIME	(60)
 
 static void SendDataCallBack(struct k_timer *timer_id);
 K_TIMER_DEFINE(send_data_timer, SendDataCallBack, NULL);
@@ -162,6 +162,7 @@ uint8_t g_new_ble_ver[64] = {0};
 uint8_t g_new_wifi_ver[64] = {0};
 uint8_t g_new_ui_ver[16] = {0};
 uint8_t g_new_font_ver[16] = {0};
+uint8_t g_new_str_ver[16] = {0};
 uint8_t g_new_ppg_ver[16] = {0};
 uint8_t g_timezone[5] = {0};
 
@@ -662,14 +663,13 @@ void mqtt_unlink(void)
 static void mqtt_link(struct k_work_q *work_q)
 {
 	int err;
-	static bool init_flag = false;
 	
 #ifdef NB_DEBUG
 	LOGD("begin");
 #endif
 
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
-	if(FactryTestActived())
+	if(FactoryTestActived())
 		return;
 #endif
 
@@ -679,11 +679,7 @@ static void mqtt_link(struct k_work_q *work_q)
 	mqtt_connecting_flag = true;
 	//k_timer_start(&mqtt_connect_timer, K_SECONDS(3*60), K_NO_WAIT);
 
-	if(!init_flag)
-	{
-		client_init(&client);
-		init_flag = true;
-	}
+	client_init(&client);
 
 	err = mqtt_connect(&client);
 	if(err != 0)
@@ -996,7 +992,7 @@ void NBRedrawSignal(void)
 	bool flag = false;
 
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
-	if(FactryTestActived())
+	if(FactoryTestActived())
 		return;
 #endif
 
@@ -1106,7 +1102,7 @@ void GetModemDateTime(void)
 	#endif
 	
 	#ifdef CONFIG_FACTORY_TEST_SUPPORT
-	  	if(FactryTestActived())
+	  	if(FactoryTestActived())
 	  		return;
 	#endif/*CONFIG_FACTORY_TEST_SUPPORT*/
 
@@ -1855,7 +1851,18 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			//后台下发摔倒检测设置
 			GetStringInforBySepa(strdata, ",", 3, tmpbuf);
 			global_settings.fall_check = atoi(tmpbuf);
-			
+			//后台下发心率检测设置
+			GetStringInforBySepa(strdata, ",", 4, tmpbuf);
+			global_settings.hr_is_on = atoi(tmpbuf);
+			//后台下发体温检测设置
+			GetStringInforBySepa(strdata, ",", 5, tmpbuf);
+			global_settings.temp_is_on = atoi(tmpbuf);
+			//后台下发血氧检测设置
+			GetStringInforBySepa(strdata, ",", 6, tmpbuf);
+			global_settings.spo2_is_on = atoi(tmpbuf);
+			//后台下发血压检测设置
+			GetStringInforBySepa(strdata, ",", 7, tmpbuf);
+			global_settings.bpt_is_on = atoi(tmpbuf);
 			flag = true;
 		}
 		else if(strcmp(strcmd, "S11") == 0)
@@ -1896,9 +1903,6 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			uint8_t strtmp[256] = {0};
 			uint32_t copylen = 0;
 
-			//Add a ',' as the ending character at the end
-			strcat(strdata, ",");
-			
 			//后台下发最新版本信息
 			//project dir
 			ptr = strstr(strdata, ",");
@@ -1927,7 +1931,6 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			memcpy(g_new_modem_ver, ptr, copylen);
 
 			//52810 fw ver
-		#ifdef CONFIG_BLE_SUPPORT	
 			ptr = ptr1+1;
 			ptr1 = strstr(ptr, ",");
 			if(ptr1 == NULL)
@@ -1935,10 +1938,8 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			copylen = (ptr1-ptr) < sizeof(g_new_ble_ver) ? (ptr1-ptr) : sizeof(g_new_ble_ver);
 			memset(g_new_ble_ver, 0x00, sizeof(g_new_ble_ver));
 			memcpy(g_new_ble_ver, ptr, copylen);
-		#endif
 
 			//ppg ver
-		#ifdef CONFIG_PPG_SUPPORT	
 			ptr = ptr1+1;
 			ptr1 = strstr(ptr, ",");
 			if(ptr1 == NULL)
@@ -1946,10 +1947,8 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			copylen = (ptr1-ptr) < sizeof(g_new_ppg_ver) ? (ptr1-ptr) : sizeof(g_new_ppg_ver);
 			memset(g_new_ppg_ver, 0x00, sizeof(g_new_ppg_ver));
 			memcpy(g_new_ppg_ver, ptr, copylen);
-		#endif
-		
+
 			//wifi ver
-		#ifdef CONFIG_WIFI_SUPPORT	
 			ptr = ptr1+1;
 			ptr1 = strstr(ptr, ",");
 			if(ptr1 == NULL)
@@ -1957,7 +1956,6 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			copylen = (ptr1-ptr) < sizeof(g_new_wifi_ver) ? (ptr1-ptr) : sizeof(g_new_wifi_ver);
 			memset(g_new_wifi_ver, 0x00, sizeof(g_new_wifi_ver));
 			memcpy(g_new_wifi_ver, ptr, copylen);
-		#endif
 
 			//ui ver
 			ptr = ptr1+1;
@@ -1972,11 +1970,20 @@ void ParseData(uint8_t *data, uint32_t datalen)
 			ptr = ptr1+1;
 			ptr1 = strstr(ptr, ",");
 			if(ptr1 == NULL)
-				copylen = (datalen-(ptr-strdata)) < sizeof(g_new_font_ver) ? (datalen-(ptr-strdata)) : sizeof(g_new_font_ver);
-			else
-				copylen = (ptr1-ptr) < sizeof(g_new_font_ver) ? (ptr1-ptr) : sizeof(g_new_font_ver);
+				return;
+			copylen = (ptr1-ptr) < sizeof(g_new_font_ver) ? (ptr1-ptr) : sizeof(g_new_font_ver);
 			memset(g_new_font_ver, 0x00, sizeof(g_new_font_ver));
 			memcpy(g_new_font_ver, ptr, copylen);
+
+			//str ver
+			ptr = ptr1+1;
+			ptr1 = strstr(ptr, ",");
+			if(ptr1 == NULL)
+				copylen = (datalen-(ptr-strdata)) < sizeof(g_new_str_ver) ? (datalen-(ptr-strdata)) : sizeof(g_new_str_ver);
+			else
+				copylen = (ptr1-ptr) < sizeof(g_new_str_ver) ? (ptr1-ptr) : sizeof(g_new_str_ver);
+			memset(g_new_str_ver, 0x00, sizeof(g_new_str_ver));
+			memcpy(g_new_str_ver, ptr, copylen);
 
 		#ifdef CONFIG_FOTA_DOWNLOAD
 			VerCheckExit();
@@ -2101,9 +2108,11 @@ void ParseData(uint8_t *data, uint32_t datalen)
 				case 1://SOS Alarm
 					SOSRecLocatNotify(ptr+1);
 					break;
+			#ifdef CONFIG_FALL_DETECT_SUPPORT		
 				case 2://Fall Alarm
-					//FallRecLocatNotify(ptr+1);
+					FallRecLocatNotify(ptr+1);
 					break;
+			#endif		
 				}
 			}
 		}
@@ -2722,9 +2731,7 @@ void GetModemInfor(void)
 
 	if(strlen(g_imsi) > 0)
 	{
-	#ifndef CONFIG_FACTORY_TEST_SUPPORT
-		k_work_schedule_for_queue(app_work_q, &nb_link_work, K_NO_WAIT);
-	#endif
+		k_work_schedule_for_queue(app_work_q, &nb_link_work, K_SECONDS(10));//xb add 2025-10-20 Reserve 10 seconds for entering factory testing mode
 	}
 }
 
@@ -3008,20 +3015,22 @@ static void nb_test(struct k_work *work)
 #endif
 
 	err = lte_lc_connect();
-	__ASSERT(err == 0, "LTE link could not be established.");
-#ifdef NB_DEBUG
-	LOGD("LTE Link Connected!");
-#endif
+	if(err == 0)
+	{
+	#ifdef NB_DEBUG
+		LOGD("LTE Link Connected!");
+	#endif
 
-	strcpy(nb_test_info, "LTE Link Connected!");
-#ifdef NB_SIGNAL_TEST
-	TestNBUpdateINfor();
-#endif
-#ifdef CONFIG_FACTORY_TEST_SUPPORT	
-	FTNetStatusUpdate(0);
-#endif
+		strcpy(nb_test_info, "LTE Link Connected!");
+	#ifdef NB_SIGNAL_TEST
+		TestNBUpdateINfor();
+	#endif
+	#ifdef CONFIG_FACTORY_TEST_SUPPORT	
+		FTNetStatusUpdate(0);
+	#endif
 
-	k_timer_start(&get_nw_rsrp_timer, K_MSEC(1000), K_NO_WAIT);
+		k_timer_start(&get_nw_rsrp_timer, K_MSEC(1000), K_NO_WAIT);
+	}
 }
 
 static void nb_link(struct k_work *work)
@@ -3030,7 +3039,7 @@ static void nb_link(struct k_work *work)
 	uint8_t tmpbuf[128] = {0};
 
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
-	if(FactryTestActived()&&!IsFTNetTesting())
+	if(FactoryTestActived()&&!IsFTNetTesting())
 		return;
 #endif
 
@@ -3179,7 +3188,11 @@ void NBMsgProcess(void)
 		LOGD("Start NB-IoT test!");
 	#endif
 	
-		if(nb_is_chinese_sim())	//cmcc
+		if(1
+			#ifdef CONFIG_FACTORY_TEST_SUPPORT	
+				&& FactorySmtTestActived()
+			#endif
+			)
 		{
 			if(nb_is_connecting())
 			{
@@ -3314,7 +3327,7 @@ void NBMsgProcess(void)
 		
 		if(test_gps_flag || nb_connected
 		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			|| FactryTestActived()
+			|| FactoryTestActived()
 		#endif
 			)
 			return;
@@ -3347,7 +3360,7 @@ void NBMsgProcess(void)
 
 		if(test_gps_flag || mqtt_connected
 		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			|| FactryTestActived()
+			|| FactoryTestActived()
 		#endif
 			)
 			return;
@@ -3386,7 +3399,7 @@ void NBMsgProcess(void)
 
 		if(test_gps_flag
 		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			|| FactryTestActived()
+			|| FactoryTestActived()
 		#endif
 			)
 			return;
@@ -3417,7 +3430,7 @@ void NBMsgProcess(void)
 
 	if(nb_connecting_flag || mqtt_connecting_flag || mqtt_connected)
 	{
-		k_sleep(K_MSEC(5));
+		k_sleep(K_MSEC(10));
 	}
 }
 

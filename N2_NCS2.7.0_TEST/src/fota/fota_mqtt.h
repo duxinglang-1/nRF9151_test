@@ -10,6 +10,8 @@
 #ifndef __FOTA_MQTT_H__
 #define __FOTA_MQTT_H__
 
+#include "lcd.h"
+
 #define FOTA_LOGO_W				60
 #define FOTA_LOGO_H				60
 #define FOTA_LOGO_X				((LCD_WIDTH-FOTA_LOGO_W)/2)
@@ -26,7 +28,7 @@
 #define FOTA_BG_H				31
 #define FOTA_BG_X				((LCD_WIDTH-FOTA_BG_W)/2)
 #define FOTA_BG_Y				154
-#define FOTA_START_STR_W		210
+#define FOTA_START_STR_W		220
 #define FOTA_START_STR_H		47
 #define FOTA_START_STR_X		((LCD_WIDTH-FOTA_START_STR_W)/2)
 #define FOTA_START_STR_Y		95

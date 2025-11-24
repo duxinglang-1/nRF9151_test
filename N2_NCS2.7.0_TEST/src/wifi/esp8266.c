@@ -13,6 +13,8 @@
 #include <string.h>
 #include "esp8266.h"
 #include "uart.h"
+#include "screen.h"
+#include "lcd.h"
 #include "logger.h"
 #include "transfer_cache.h"
 
@@ -185,7 +187,7 @@ void APP_Ask_wifi_data(void)
 ==============================================================================*/
 void Send_Cmd_To_Esp8285(uint8_t *cmd, uint32_t WaitTime)
 {
-	WifiSendData(cmd, strlen(cmd));
+	CopcsSendData(cmd, strlen(cmd));
 }
 
 /*============================================================================

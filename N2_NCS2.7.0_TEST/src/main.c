@@ -14,13 +14,18 @@
 #include <zephyr/drivers/gpio.h>
 #include <modem/nrf_modem_lib.h>
 #include <dk_buttons_and_leds.h>
+#include "lcd.h"
 #include "datetime.h"
+#include "font.h"
+#include "img.h"
 #include "inner_flash.h"
 #include "external_flash.h"
-#ifdef CONFIG_BLE_SUPPORT
-#include "ble.h"
-#endif
+#include "uart.h"
 #include "settings.h"
+#ifdef CONFIG_TOUCH_SUPPORT
+#include "CST816.h"
+#endif
+#include "Max20353.h"
 #ifdef CONFIG_IMU_SUPPORT
 #include "lsm6dso.h"
 #endif
@@ -28,6 +33,7 @@
 #include "gps.h"
 #endif
 #include "pmu.h"
+#include "screen.h"
 #include "codetrans.h"
 #ifdef CONFIG_AUDIO_SUPPORT
 #include "audio.h"
@@ -47,7 +53,7 @@ static bool sys_pwron_completed_flag = false;
 
 /* Stack definition for application workqueue */
 K_THREAD_STACK_DEFINE(nb_stack_area,
-		      8192);
+		      4096);
 static struct k_work_q nb_work_q;
 
 #ifdef CONFIG_IMU_SUPPORT
@@ -130,21 +136,22 @@ void system_init(void)
 #endif
 	pmu_init();
 	key_init();
-	//flash_init();
+	flash_init();
 	
 #ifdef CONFIG_AUDIO_SUPPORT	
 	audio_init();
 #endif
-#ifdef CONFIG_WIFI_SUPPORT
-	wifi_init();
-#endif
+	uart_init();
 #ifdef CONFIG_IMU_SUPPORT
 	IMU_init(&imu_work_q);
 #endif
 #ifdef CONFIG_PRESSURE_SUPPORT
 	pressure_init();
 #endif
-	//LogInit();
+#ifdef CONFIG_DATA_DOWNLOAD_SUPPORT
+	dl_init();
+#endif
+	LogInit();
 
 	NB_init(&nb_work_q);
 	GPS_init(&gps_work_q);
@@ -228,12 +235,26 @@ int main(void)
 		FallMsgProcess();
 	#endif
 	#endif
+	#ifdef CONFIG_PPG_SUPPORT	
+		PPGMsgProcess();
+	#endif
+		LCDMsgProcess();
+	#ifdef CONFIG_TOUCH_SUPPORT
+		TPMsgProcess();
+	#endif
+	#ifdef CONFIG_ALARM_SUPPORT
+		AlarmMsgProcess();
+	#endif
 		SettingsMsgPorcess();
 		SOSMsgProc();
-	#ifdef CONFIG_WIFI_SUPPORT	
+	#ifdef CONFIG_WIFI_SUPPORT
 		WifiMsgProcess();
 	#endif
 		UartMsgProc();
+	#ifdef CONFIG_ANIMATION_SUPPORT
+		AnimaMsgProcess();
+	#endif		
+		ScreenMsgProcess();
 	#ifdef CONFIG_DATA_DOWNLOAD_SUPPORT
 		DlMsgProc();
 	#endif
@@ -243,6 +264,12 @@ int main(void)
 	#endif
 	#ifdef CONFIG_AUDIO_SUPPORT
 		AudioMsgProcess();
+	#endif
+	#ifdef CONFIG_SYNC_SUPPORT
+		SyncMsgProcess();
+	#endif
+	#ifdef CONFIG_TEMP_SUPPORT
+		TempMsgProcess();
 	#endif
 	#ifdef CONFIG_PRESSURE_SUPPORT
 		PressureMsgProcess();

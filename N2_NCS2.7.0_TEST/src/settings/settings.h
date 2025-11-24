@@ -5,31 +5,53 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <zephyr/kernel.h>
+#include "strdef.h"
 
 #define FW_FOR_CN	//ÖÐÎÄ°æ±¾
 
-#define ALARM_MAX	8
-#define MENU_MAX_COUNT	10
-#define MENU_NAME_MAX	25
-#define MENU_NAME_STR_MAX	13
-#define MENU_OPT_STR_MAX	7
-#define MENU_NOTIFY_STR_MAX	28
-
-#define VERSION_STR	"V1.0.0_241205"
-#ifdef CONFIG_FACTORY_TEST_SUPPORT
-#define LANG_BRANCH	"FT"
-#else
 #ifdef FW_FOR_CN
-#define LANG_BRANCH	"BC"
+#define LANGUAGE_CN_ENABLE		//Chinese
+#define LANGUAGE_EN_ENABLE		//English
 #else
-#define LANG_BRANCH	"BU"
+#define LANGUAGE_EN_ENABLE		//English
+#define LANGUAGE_DE_ENABLE		//Deutsch
+#define LANGUAGE_FR_ENABLE		//French
+#define LANGUAGE_IT_ENABLE		//Italian
+#define LANGUAGE_ES_ENABLE		//Spanish
+#define LANGUAGE_PT_ENABLE		//Portuguese
+#define LANGUAGE_PL_ENABLE		//Polish
+#define LANGUAGE_SV_ENABLE		//Swedish
+#define LANGUAGE_JA_ENABLE		//Japanese
+#define LANGUAGE_KR_ENABLE		//Korea
+#define LANGUAGE_RU_ENABLE		//Russian
+#define LANGUAGE_AR_ENABLE		//Arabic
 #endif
-#endif
+
+#define ALARM_MAX	8
+#define MENU_MAX_COUNT	15
+#define MENU_NAME_MAX	25
+#define MENU_NAME_STR_MAX	15
+#define MENU_OPT_STR_MAX	10
+#define MENU_NOTIFY_STR_MAX	32
+
+#define VERSION_STR	"3.4.6_51028"
 
 #ifdef FW_FOR_CN
-#define SETTINGS_CAREMATE_URL	"https://caremate.audarhealth.cn/login"
+#define LANG_BRANCH	"C"
 #else
-#define SETTINGS_CAREMATE_URL	"https://caremate.audarhealth.com/login"
+#define LANG_BRANCH	"U"
+#endif
+#ifdef CONFIG_FALL_DETECT_SUPPORT
+#define FALL_BRANCH	"F4.2"
+#else
+#define FALL_BRANCH ""
+#endif/*CONFIG_FALL_DETECT_SUPPORT*/
+
+
+#ifdef FW_FOR_CN
+#define SETTINGS_CAREMATE_URL	"https://caremate.audarhealth.cn/login?imei="
+#else
+#define SETTINGS_CAREMATE_URL	"https://caremate.audarhealth.com/login?imei="
 #endif
 
 typedef void(*menu_handler)(void);
@@ -46,23 +68,6 @@ typedef enum{
 	DATE_FORMAT_DDMMYYYY,
 	DATE_FORMAT_MAX
 }DATE_FORMAT;
-
-typedef enum
-{
-	LANGUAGE_BEGIN,
-#ifndef FW_FOR_CN
-	LANGUAGE_EN = LANGUAGE_BEGIN,	//English
-	LANGUAGE_DE,					//Deutsch
-	LANGUAGE_FR,					//French
-	LANGUAGE_ITA,					//Italian
-	LANGUAGE_ES,					//Spanish
-	LANGUAGE_PT,					//Portuguese
-#else
-	LANGUAGE_CHN = LANGUAGE_BEGIN,	//Chinese
-	LANGUAGE_EN,					//English
-#endif	
-	LANGUAGE_MAX
-}LANGUAGE_SET;
 
 typedef enum
 {
@@ -138,7 +143,7 @@ typedef struct
 	MENU_ID id;
 	uint8_t index;
 	uint8_t count;
-	uint16_t name[LANGUAGE_MAX][MENU_MAX_COUNT][MENU_NAME_MAX];
+	uint16_t name[MENU_MAX_COUNT];
 	menu_handler sel_handler[MENU_MAX_COUNT];
 	menu_handler pg_handler[4];
 }settings_menu_t;
@@ -184,7 +189,7 @@ typedef struct
 	uint32_t health_interval;
 	TEMP_UNIT temp_unit;
 	TIME_FORMAT time_format;
-	LANGUAGE_SET language;
+	RES_LANGUAGES_ID language;
 	DATE_FORMAT date_format;
 	CLOCK_MODE idle_colck_mode;
 	BACKLIGHT_TIME backlight_time;
@@ -198,6 +203,7 @@ typedef struct
 extern bool need_save_time;
 extern bool need_save_settings;
 extern bool need_reset_settings;
+extern bool g_language_r2l;
 
 extern uint8_t screen_id;
 extern uint8_t g_fw_version[64];
@@ -205,6 +211,7 @@ extern uint8_t g_fw_version[64];
 extern global_settings_t global_settings;
 extern settings_menu_t settings_menu;
 extern RESET_STATUS g_reset_status;
+extern const RES_LANGUAGES_ID LANG_MENU_ITEM[];
 
 extern void InitSystemSettings(void);
 extern void SaveSystemSettings(void);

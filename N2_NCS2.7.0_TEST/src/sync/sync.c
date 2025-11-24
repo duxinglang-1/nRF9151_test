@@ -15,10 +15,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
+#include "lcd.h"
 #include "sync.h"
 #ifdef CONFIG_WIFI_SUPPORT
 #include "esp8266.h"
 #endif
+#include "screen.h"
 #ifdef CONFIG_ANIMATION_SUPPORT
 #include "animation.h"
 #endif
@@ -52,6 +54,10 @@ void SyncStatusUpdate(void)
 	case SYNC_STATUS_SENT:
 	case SYNC_STATUS_FAIL:
 		sync_state = SYNC_STATUS_IDLE;
+		if(screen_id == SCREEN_ID_SYNC)
+		{
+			ExitSyncDataScreen();
+		}
 		break;
 	}
 }
@@ -93,6 +99,7 @@ void SyncDataStart(void)
 
 	ClearLeftKeyUpHandler();
 	sync_state = SYNC_STATUS_LINKING;
+	SyncUpdateStatus();
 	SyncSendHealthData();
 	k_timer_start(&sync_timer, K_SECONDS(60), K_NO_WAIT);
 }
@@ -109,6 +116,10 @@ void SyncNetWorkCallBack(SYNC_STATUS status)
 			break;
 			
 		case SYNC_STATUS_LINKING:
+			if(screen_id == SCREEN_ID_SYNC)
+			{
+				SyncUpdateStatus();
+			}
 			SyncSendHealthData();
 			break;
 			
@@ -118,6 +129,10 @@ void SyncNetWorkCallBack(SYNC_STATUS status)
 		#ifdef CONFIG_ANIMATION_SUPPORT 
 			AnimaStop();
 		#endif
+			if(screen_id == SCREEN_ID_SYNC)
+			{
+				sync_redraw_flag = true;
+			}
 
 			if(k_timer_remaining_get(&sync_timer) == 0)
 				k_timer_start(&sync_timer, K_SECONDS(3), K_NO_WAIT);
@@ -137,6 +152,7 @@ void SyncMsgProcess(void)
 	if(sync_redraw_flag)
 	{
 		sync_redraw_flag = false;
+		SyncUpdateStatus();
 	}
 	
 	if(sync_status_change_flag)

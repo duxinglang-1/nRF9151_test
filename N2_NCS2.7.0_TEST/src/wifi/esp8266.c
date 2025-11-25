@@ -187,7 +187,7 @@ void APP_Ask_wifi_data(void)
 ==============================================================================*/
 void Send_Cmd_To_Esp8285(uint8_t *cmd, uint32_t WaitTime)
 {
-	CopcsSendData(cmd, strlen(cmd));
+	CopcsSendData(UART_DATA_WIFI, cmd, strlen(cmd));
 }
 
 /*============================================================================

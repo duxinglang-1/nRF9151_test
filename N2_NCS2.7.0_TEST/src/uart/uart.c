@@ -16,6 +16,9 @@
 #include "datetime.h"
 #include "Settings.h"
 #include "Uart.h"
+#ifdef CONFIG_BLE_SUPPORT
+#include "ble.h"
+#endif
 #ifdef CONFIG_TOUCH_SUPPORT
 #include "CST816.h"
 #endif
@@ -264,7 +267,7 @@ void APP_set_find_device(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	app_find_device = true;	
 }
@@ -308,7 +311,7 @@ void APP_set_language(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	if(screen_id == SCREEN_ID_IDLE)
 	{
@@ -355,7 +358,7 @@ void APP_set_time_24_format(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	if(screen_id == SCREEN_ID_IDLE)
 	{
@@ -405,7 +408,7 @@ void APP_set_date_format(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	if(screen_id == SCREEN_ID_IDLE)
 	{
@@ -466,7 +469,7 @@ void APP_set_date_time(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);	
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 }
 
 #ifdef CONFIG_ALARM_SUPPORT
@@ -516,7 +519,7 @@ void APP_set_alarm(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);	
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 }
 #endif
 
@@ -552,7 +555,7 @@ void APP_set_PHD_interval(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	need_save_settings = true;	
 }
@@ -591,7 +594,7 @@ void APP_set_wake_screen_by_wrist(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	need_save_settings = true;
 }
@@ -625,7 +628,7 @@ void APP_set_factory_reset(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	need_reset_settings = true;
 }
@@ -661,7 +664,7 @@ void APP_set_target_steps(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 
 	need_save_settings = true;
 }
@@ -710,7 +713,7 @@ void APP_get_one_key_measure_data(uint8_t *buf, uint32_t len)
 		for(i=0;i<(reply_len-2);i++)
 			reply[reply_len-2] += reply[i];
 
-		CopcsSendData(reply, reply_len);
+		CopcsSendData(UART_DATA_BLE, reply, reply_len);
 	}
 }
 #endif
@@ -784,7 +787,7 @@ void MCU_reply_cur_hour_ppg(sys_date_timer_t time, PPG_DATA_TYPE type, uint8_t *
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void MCU_reply_cur_hour_temp(sys_date_timer_t time, uint8_t *data)
@@ -828,7 +831,7 @@ void MCU_reply_cur_hour_temp(sys_date_timer_t time, uint8_t *data)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void APP_get_cur_hour_health(sys_date_timer_t ask_time)
@@ -919,7 +922,7 @@ void APP_get_cur_hour_sport(sys_date_timer_t ask_time)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void APP_get_cur_hour_data(uint8_t *buf, uint32_t len)
@@ -1039,7 +1042,7 @@ void APP_get_gps_data_reply(bool flag, struct nrf_modem_gnss_pvt_data_frame gps_
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void APP_get_battery_level(uint8_t *buf, uint32_t len)
@@ -1083,7 +1086,7 @@ void APP_get_battery_level(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void APP_get_firmware_version(uint8_t *buf, uint32_t len)
@@ -1117,7 +1120,7 @@ void APP_get_firmware_version(uint8_t *buf, uint32_t len)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 #ifdef CONFIG_PPG_SUPPORT
@@ -1162,7 +1165,7 @@ void APP_get_hr(uint8_t *buf, uint32_t len)
 		for(i=0;i<(reply_len-2);i++)
 			reply[reply_len-2] += reply[i];
 
-		CopcsSendData(reply, reply_len);	
+		CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 	}
 	else
 	{
@@ -1223,7 +1226,7 @@ void APP_get_spo2(uint8_t *buf, uint32_t len)
 		for(i=0;i<(reply_len-2);i++)
 			reply[reply_len-2] += reply[i];
 
-		CopcsSendData(reply, reply_len);	
+		CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 	}
 	else
 	{
@@ -1284,7 +1287,7 @@ void APP_get_bpt(uint8_t *buf, uint32_t len)
 		for(i=0;i<(reply_len-2);i++)
 			reply[reply_len-2] += reply[i];
 
-		CopcsSendData(reply, reply_len);	
+		CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 	}
 	else
 	{
@@ -1350,7 +1353,7 @@ void APP_get_temp(uint8_t *buf, uint32_t len)
 		for(i=0;i<(reply_len-2);i++)
 			reply[reply_len-2] += reply[i];
 
-		CopcsSendData(reply, reply_len);	
+		CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 	}
 	else
 	{
@@ -1403,7 +1406,7 @@ void MCU_get_ble_status(void)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 //手环查找手机
@@ -1438,7 +1441,7 @@ void MCU_send_find_phone(void)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);	
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 }
 
 //手环上报一键测量数据
@@ -1482,7 +1485,7 @@ void MCU_send_app_one_key_measure_data(void)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void MCU_send_app_get_ppg_data(PPG_DATA_TYPE flag, uint8_t *data)
@@ -1540,7 +1543,7 @@ void MCU_send_app_get_ppg_data(PPG_DATA_TYPE flag, uint8_t *data)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void MCU_send_app_get_temp_data(uint8_t *data)
@@ -1575,7 +1578,7 @@ void MCU_send_app_get_temp_data(uint8_t *data)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void nrf52810_report_work_mode(uint8_t *buf, uint32_t len)
@@ -1685,7 +1688,7 @@ void MCU_get_nrf52810_ver(void)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 void MCU_get_ble_mac_address(void)
@@ -1717,7 +1720,7 @@ void MCU_get_ble_mac_address(void)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);
 }
 
 //设置BLE工作模式		0:关闭 1:打开 2:唤醒 3:休眠
@@ -1750,7 +1753,7 @@ void MCU_set_ble_work_mode(ENUM_BLE_MODE work_mode)
 	for(i=0;i<(reply_len-2);i++)
 		reply[reply_len-2] += reply[i];
 
-	CopcsSendData(reply, reply_len);	
+	CopcsSendData(UART_DATA_BLE, reply, reply_len);	
 }
 
 /**********************************************************************************
@@ -1973,10 +1976,43 @@ static void uart_receive_data_handle(struct device *dev, uint8_t *data, uint32_t
 	uint32_t data_len = 0;
 
 #ifdef UART_DEBUG
-	LOGD("uart for wifi!");
+	LOGD("uart rece data!");
 #endif
-#ifdef CONFIG_WIFI_SUPPORT
-	wifi_receive_data_handle(data, datalen);
+
+#ifdef CONFIG_PPG_SUPPORT
+	if(strncmp(data, PPG_DATA_HEAD, strlen(PPG_DATA_HEAD)) == 0)
+	{
+	}
+#endif
+
+#ifdef CONFIG_ECG_SUPPORT
+	if(strncmp(data, ECG_DATA_HEAD, strlen(ECG_DATA_HEAD)) == 0)
+	{
+	}
+#endif
+
+#ifdef CONFIG_TEMP_SUPPORT
+	if(strncmp(data, TEMP_DATA_HEAD, strlen(TEMP_DATA_HEAD)) == 0)
+	{
+	}
+#endif
+
+#ifdef CONFIG_WIFI_SUPPORT	
+	if(strncmp(data, WIFI_DATA_HEAD, strlen(WIFI_DATA_HEAD)) == 0)
+	{
+	}
+#endif
+
+#ifdef CONFIG_AUDIO_SUPPORT
+	if(strncmp(data, AUDIO_DATA_HEAD, strlen(AUDIO_DATA_HEAD)) == 0)
+	{
+	}
+#endif
+
+#ifdef CONFIG_BLE_SUPPORT
+	if(strncmp(data, BLE_DATA_HEAD, strlen(BLE_DATA_HEAD)) == 0)
+	{
+	}
 #endif
 }
 
@@ -2011,12 +2047,51 @@ bool SendCacheIsEmpty(void)
 		return false;
 }
 
-void CopcsSendData(uint8_t *data, uint32_t datalen)
+void CopcsSendData(UART_DATA_TYPE type, uint8_t *data, uint32_t datalen)
 {
 	int ret;
+	uint8_t head_len, *ptr;
 
-	ret = add_data_into_cache(&uart_send_cache, data, datalen, DATA_TRANSFER);
-	UartSendDataStart();
+	ptr = k_malloc(datalen);
+	if(ptr != NULL)
+	{
+		memset(ptr, 0x00, datalen);
+		
+		switch(type)
+		{
+		case UART_DATA_PPG:
+			strcpy(ptr, PPG_DATA_HEAD);
+			head_len = strlen(PPG_DATA_HEAD);
+			break;
+		case UART_DATA_ECG:
+			strcpy(ptr, ECG_DATA_HEAD);
+			head_len = strlen(ECG_DATA_HEAD);
+			break;
+		case UART_DATA_TEMP:
+			strcpy(ptr, TEMP_DATA_HEAD);
+			head_len = strlen(TEMP_DATA_HEAD);
+			break;
+		case UART_DATA_WIFI:
+			strcpy(ptr, WIFI_DATA_HEAD);
+			head_len = strlen(WIFI_DATA_HEAD);
+			break;			
+		case UART_DATA_AUIOD:
+			strcpy(ptr, AUDIO_DATA_HEAD);
+			head_len = strlen(AUDIO_DATA_HEAD);
+			break;
+		case UART_DATA_BLE:
+			strcpy(ptr, BLE_DATA_HEAD);
+			head_len = strlen(BLE_DATA_HEAD);
+			break;
+		}
+
+		memcpy(ptr+head_len, data, datalen);
+		ret = add_data_into_cache(&uart_send_cache, ptr, datalen+head_len, DATA_TRANSFER);
+		if(ret)
+			UartSendDataStart();
+
+		k_free(ptr);
+	}
 }
 
 void UartReceData(void)
@@ -2342,7 +2417,7 @@ void test_uart_ble(void)
 
 	while(1)
 	{
-		CopcsSendData("Hello World!\n", strlen("Hello World!\n"));
+		CopcsSendData(UART_DATA_BLE, "Hello World!\n", strlen("Hello World!\n"));
 		k_sleep(K_MSEC(1000));
 	}
 }

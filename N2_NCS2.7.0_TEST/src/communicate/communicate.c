@@ -1166,7 +1166,7 @@ void SendPowerOnData(void)
 	strcat(reply, ",");
 
 	//ble mac
-#ifdef CONFIG_BLE_SUPPORT	
+#ifdef CONFIG_BLE_SUPPORT
 	strcat(reply, g_ble_mac_addr);
 #else
 	strcat(reply, "NO BLE");

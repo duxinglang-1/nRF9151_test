@@ -345,6 +345,7 @@ typedef enum
 #define SYSTEM_USES_MFIO_PIN
 #define SYSTEM_USES_RST_PIN
 
+extern uint8_t sh_bpt_cal[CAL_RESULT_SIZE];
 /**
 * @brief	Func to write to algohub/sensorhub via sending generic command byte sequences
 *

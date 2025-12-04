@@ -1982,6 +1982,7 @@ static void uart_receive_data_handle(struct device *dev, uint8_t *data, uint32_t
 #ifdef CONFIG_PPG_SUPPORT
 	if(strncmp(data, PPG_DATA_HEAD, strlen(PPG_DATA_HEAD)) == 0)
 	{
+		UartPPGEventHandle(data, datalen);
 	}
 #endif
 

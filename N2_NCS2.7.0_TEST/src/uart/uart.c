@@ -1995,6 +1995,7 @@ static void uart_receive_data_handle(struct device *dev, uint8_t *data, uint32_t
 #ifdef CONFIG_TEMP_SUPPORT
 	if(strncmp(data, TEMP_DATA_HEAD, strlen(TEMP_DATA_HEAD)) == 0)
 	{
+		UartTempEventHandle(data, datalen);
 	}
 #endif
 

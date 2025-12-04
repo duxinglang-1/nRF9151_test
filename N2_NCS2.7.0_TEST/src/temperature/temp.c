@@ -19,19 +19,16 @@
 #include "temp.h"
 #include "inner_flash.h"
 #include "logger.h"
-#if defined(TEMP_GXTS04)
-#include "gxts04.h"
-#elif defined(TEMP_MAX30208)
-#include "max30208.h"
-#elif defined(TEMP_CT1711)
-#include "ct1711.h"
-#endif
 #ifdef CONFIG_PPG_SUPPORT
 #include "max32674.h"
 #endif
+#ifdef CONFIG_CRC_SUPPORT
+#include "crc_check.h"
+#endif
+
+//#define TEMP_DEBUG
 
 static bool temp_check_ok = false;
-static bool temp_get_data_flag = false;
 static bool temp_start_flag = false;
 static bool temp_test_flag = false;
 static bool temp_stop_flag = false;
@@ -40,8 +37,18 @@ static bool temp_power_flag = false;
 static bool menu_start_temp = false;
 static bool ft_start_temp = false;
 
+static uint32_t measure_count = 0;
+static float t_sensor = 0.0;		//传感器温度值
+static float t_body = 0.0; 			//显示的温度值
+static float t_predict = 0.0;		//预测的人体温度值
+static float t_temp80 = 0.0;		//预测的人体温度值
+
 static uint8_t rec2buf[TEMP_REC2_DATA_SIZE] = {0};
 static uint8_t databuf[TEMP_REC2_DATA_SIZE] = {0};
+
+#ifdef CONFIG_CRC_SUPPORT
+static CRC_8 crc_8_CUSTOM = {0x31,0xff,0x00,false,false};
+#endif
 
 bool get_temp_ok_flag = false;
 
@@ -60,8 +67,6 @@ static void temp_auto_stop_timerout(struct k_timer *timer_id);
 K_TIMER_DEFINE(temp_stop_timer, temp_auto_stop_timerout, NULL);
 static void temp_menu_stop_timerout(struct k_timer *timer_id);
 K_TIMER_DEFINE(temp_menu_stop_timer, temp_menu_stop_timerout, NULL);
-static void temp_get_timerout(struct k_timer *timer_id);
-K_TIMER_DEFINE(temp_check_timer, temp_get_timerout, NULL);
 
 static void temp_auto_stop_timerout(struct k_timer *timer_id)
 {
@@ -80,11 +85,6 @@ static void temp_menu_stop_timerout(struct k_timer *timer_id)
 		scr_msg[screen_id].para |= SCREEN_EVENT_UPDATE_TEMP;
 		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
 	}
-}
-
-static void temp_get_timerout(struct k_timer *timer_id)
-{
-	temp_get_data_flag = true;
 }
 
 void ClearAllTempRecData(void)
@@ -493,6 +493,185 @@ void FTStopTemp(void)
 }
 #endif
 
+void TempDataProcess(uint8_t *data, uint32_t len)
+{
+	bool flag=false;
+	uint8_t crc=0;
+	uint8_t databuf[10] = {0};
+	uint16_t trans_temp = 0;
+	float skin_temp, body_temp;
+
+	if(!CheckSCC()
+	#ifdef CONFIG_FACTORY_TEST_SUPPORT
+		&& !IsFTTempTesting()
+		&& !IsFTTempAging()
+	#endif
+		)
+	{
+		notify_infor infor = {0};
+
+		infor.x = 0;
+		infor.y = 0;
+		infor.w = LCD_WIDTH;
+		infor.h = LCD_HEIGHT;
+		infor.align = NOTIFY_ALIGN_CENTER;
+		infor.type = NOTIFY_TYPE_POPUP;
+
+		if((g_temp_trigger&TEMP_TRIGGER_BY_MENU) == TEMP_TRIGGER_BY_MENU)
+		{
+			infor.img[0] = IMG_WRIST_OFF_ICON_ADDR;
+			infor.img_count = 1;
+			DisplayPopUp(infor);
+		}
+		
+		temp_stop_flag = true;
+		return;
+	}
+	
+#ifdef TEMP_DEBUG
+	LOGD("temp:%02x,%02x,%02x", data[0],data[1],data[2]);
+#endif
+
+#ifdef CONFIG_CRC_SUPPORT
+	crc = crc8_cal(data, 2, crc_8_CUSTOM);
+#ifdef TEMP_DEBUG
+	LOGD("crc:%02x", crc);
+#endif
+	if(crc != data[2])
+		return;
+#endif
+
+	trans_temp = data[0]*0x100 + data[1];
+	t_sensor = 175.0*(float)trans_temp/65535.0-45.0;
+	if(t_sensor > 99.9)
+		t_sensor = 0.0;
+	skin_temp = t_sensor;
+	body_temp = 0;
+
+#ifdef TEMP_DEBUG
+	LOGD("count:%d, real temp:%d.%d", measure_count, (int16_t)(t_sensor*10)/10, (int16_t)(t_sensor*10)%10);
+#endif
+
+	if(t_sensor > 28)			//如果上一次测温大于32，那么开始计数
+	{
+		measure_count = measure_count+1;
+	}
+	else if(measure_count == 2000)
+	{
+		measure_count = 2000;
+	}
+	else
+	{
+		measure_count = 0;
+	}
+
+	if(measure_count == 0)
+	{
+		t_body = t_sensor; 
+		t_predict = 0;
+	}
+	else if((measure_count > 0)&&(measure_count <20))
+	{
+		t_body = t_sensor;
+	}
+	else if(measure_count == 20)
+	{
+		t_body = t_sensor;
+		t_temp80 = t_sensor;
+		if((t_sensor > 36)&&(t_sensor <= 41))
+			t_predict = 36.9 + (t_sensor-36)*4.1/5;
+		else if((t_sensor > 28)&&(t_sensor <= 36))
+			t_predict = 36.1 + (t_sensor-28)*0.8/8; 
+		else
+			t_predict = t_sensor;
+	}
+	else if((measure_count > 20)&&(measure_count <= 25))
+	{
+		t_body = ((measure_count-20)*0.8*(t_predict-t_temp80))/5 + t_temp80;
+	}
+
+	else if((measure_count > 25)&&(measure_count <= 30))
+	{
+		t_body = t_predict - ((30-measure_count)*0.2*(t_predict-t_temp80))/5;
+	}
+	else
+	{
+		if((t_sensor > 36)&&(t_sensor <= 41))
+			t_body = 36.9 + (t_sensor-36)*4.1/5;
+		else if((t_sensor > 28)&&(t_sensor <= 36))
+			t_body = 36.1 + (t_sensor-28)*0.8/8;
+		else
+			t_body = t_sensor;
+
+	#ifdef CONFIG_FACTORY_TEST_SUPPORT
+		if(!IsFTTempAging())
+	#endif
+
+		flag = true;
+	}
+
+	body_temp = t_body;
+
+#ifdef TEMP_DEBUG
+	LOGD("flag:%d, t_temp80:%d.%d, t_body:%d.%d", flag, (int16_t)(t_temp80*10)/10, (int16_t)(t_temp80*10)%10, (int16_t)(t_body*10)/10, (int16_t)(t_body*10)%10);
+#endif
+
+	if(skin_temp > 0.0)
+	{
+		g_temp_skin = skin_temp;
+		if(body_temp >= TEMP_MIN/10.0)
+		{
+			g_temp_body = body_temp;
+			if(flag)
+			{
+				temp_stop_flag = true;
+				get_temp_ok_flag = true;
+			}
+		}
+
+		temp_redraw_data_flag = true;
+
+	#ifdef CONFIG_FACTORY_TEST_SUPPORT
+		if(IsFTTempTesting())
+			FTTempStatusUpdate();
+	#endif
+	}
+}
+
+void UartTempEventHandle(uint8_t *data, uint32_t data_len)
+{
+	uint8_t *ptr;
+	
+	if(data == NULL || data_len == 0)
+		return;
+
+	ptr = strstr(data, TEMP_DATA_HEAD);
+	if(ptr != NULL)
+	{
+		uint8_t *ptr1,*ptr2;
+
+		ptr += strlen(TEMP_DATA_HEAD);
+		if((ptr1 = strstr(ptr, COM_TEMP_GET_INFOR)) != NULL)
+		{
+			uint8_t buffer[3] = {0};
+			
+			ptr1 += strlen(COM_TEMP_GET_INFOR);
+			memcpy(buffer, ptr1, (ptr1-data));
+		#ifdef TEMP_DEBUG
+			LOGD("sensor id:%d", buffer[0]*0x100 + buffer[1]);
+		#endif
+
+			temp_check_ok = true;
+		}
+		else if((ptr1 = strstr(ptr, COM_TEMP_GET_DATA)) != NULL)
+		{
+			ptr1 += strlen(COM_TEMP_GET_DATA);
+			
+			TempDataProcess(ptr1, (ptr1-data));
+		}
+	}
+}
+
 void temp_init(void)
 {
 	//Display the last record within 7 days.
@@ -502,14 +681,8 @@ void temp_init(void)
 	{
 		g_temp_body = (float)(last_health.temp_rec.deca_temp/10.0);
 	}
-
-#ifdef TEMP_GXTS04
-	temp_check_ok = gxts04_init();
-#elif defined(TEMP_MAX30208)
-	temp_check_ok = max30208_init();
-#elif defined(TEMP_CT1711)
-	temp_check_ok = ct1711_init();
-#endif
+	
+	CopcsSendData(UART_DATA_TEMP, COM_TEMP_GET_INFOR, strlen(COM_TEMP_GET_INFOR));
 }
 
 void TempMsgProcess(void)
@@ -532,13 +705,9 @@ void TempMsgProcess(void)
 		if(temp_power_flag)
 			return;
 		
-	#ifdef TEMP_GXTS04	
-		gxts04_start();
-	#endif
+		CopcsSendData(UART_DATA_TEMP, COM_TEMP_GET_DATA, strlen(COM_TEMP_GET_DATA));
 		temp_power_flag = true;
 	
-		k_timer_start(&temp_check_timer, K_MSEC(1*1000), K_MSEC(1*1000));
-
 		if((g_temp_trigger&TEMP_TRIGGER_BY_HOURLY) == TEMP_TRIGGER_BY_HOURLY)
 		{
 			k_timer_start(&temp_stop_timer, K_MSEC(TEMP_CHECK_TIMELY*60*1000), K_NO_WAIT);
@@ -557,12 +726,9 @@ void TempMsgProcess(void)
 		if(!temp_power_flag)
 			return;
 		
-	#ifdef TEMP_GXTS04	
-		gxts04_stop();
-	#endif
+		CopcsSendData(UART_DATA_TEMP, COM_CLOSE, strlen(COM_CLOSE));
 	
 		temp_power_flag = false;
-		k_timer_stop(&temp_check_timer);
 		k_timer_stop(&temp_stop_timer);
 		k_timer_stop(&temp_menu_stop_timer);
 
@@ -643,67 +809,6 @@ void TempMsgProcess(void)
 			return;
 		}
 	#endif
-	}
-
-	if(temp_get_data_flag)
-	{
-		bool ret;
-		float temp_1=0.0,temp_2=0.0;
-		
-		temp_get_data_flag = false;
-
-		if(!temp_check_ok || !temp_power_flag)
-			return;
-
-		if(!CheckSCC()
-		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			&& !IsFTTempTesting()
-			&& !IsFTTempAging()
-		#endif
-			)
-		{
-			notify_infor infor = {0};
-
-			infor.x = 0;
-			infor.y = 0;
-			infor.w = LCD_WIDTH;
-			infor.h = LCD_HEIGHT;
-			infor.align = NOTIFY_ALIGN_CENTER;
-			infor.type = NOTIFY_TYPE_POPUP;
-
-			if((g_temp_trigger&TEMP_TRIGGER_BY_MENU) == TEMP_TRIGGER_BY_MENU)
-			{
-				infor.img[0] = IMG_WRIST_OFF_ICON_ADDR;
-				infor.img_count = 1;
-				DisplayPopUp(infor);
-			}
-			
-			temp_stop_flag = true;
-			return;
-		}
-		
-		ret = GetTemperature(&temp_1, &temp_2);
-		if(temp_1 > 0.0)
-		{
-			g_temp_skin = temp_1;
-			if(temp_2 >= TEMP_MIN/10.0)
-			{
-				g_temp_body = temp_2;
-				if(ret)
-				{
-					temp_stop_flag = true;
-					get_temp_ok_flag = true;
-					k_timer_stop(&temp_check_timer);
-				}
-			}
-
-			temp_redraw_data_flag = true;
-
-		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			if(IsFTTempTesting())
-				FTTempStatusUpdate();
-		#endif
-		}
 	}
 
 	if(temp_redraw_data_flag)

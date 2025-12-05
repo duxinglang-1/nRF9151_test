@@ -31,6 +31,11 @@
 
 #define WIFI_LOCAL_MIN_COUNT	3
 
+#define COM_WIFI_GET_INFOR		"INFOR:"
+#define COM_WIFI_GET_SCAN_AP	"SCAN_AP:"
+#define COM_WIFI_SEND_DATA		"SEND_DATA:"
+#define COM_WIFI_RECE_DATA		"RECE_DATA:"
+
 typedef struct
 {
 	uint8_t rssi[8];

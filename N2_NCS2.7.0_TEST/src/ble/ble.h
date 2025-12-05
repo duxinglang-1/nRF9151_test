@@ -11,5 +11,12 @@
 #ifndef __BLE_H__
 #define __BLE_H__
 
+#define COM_BLE_GET_INFOR		"INFOR:"
+#define COM_BLE_GET_STATUS		"STATUS:"
+#define COM_BLE_GET_SCAN_AP		"SCAN_AP:"
+#define COM_BLE_SET_CONNECT		"CONNECT:"
+#define COM_BLE_SET_DISCONNECT	"DISCONNECT:"
+#define COM_BLE_SEND_DATA		"SEND_DATA:"
+#define COM_BLE_RECE_DATA		"RECE_DATA:"
 
 #endif/*__BLE_H__*/

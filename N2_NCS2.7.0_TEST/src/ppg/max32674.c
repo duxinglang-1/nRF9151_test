@@ -1553,7 +1553,7 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 
 	if(g_ppg_alg_mode == ALG_MODE_BPT)
 	{
-		bpt_algo_data_rx(&bpt, &databuf[1+SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE + SSWHRM_WSPO2_SUITE_MODE1_DATASIZE]);
+		bpt_algo_data_rx(&bpt, data+(SS_PACKET_COUNTERSIZE+SSMAX86176_MODE1_DATASIZE+SSACCEL_MODE1_DATASIZE+SSWHRM_WSPO2_SUITE_MODE1_DATASIZE));
 	
 	#ifdef PPG_DEBUG
 		LOGD("bpt_status:%d, bpt_per:%d, bpt_sys:%d, bpt_dia:%d", bpt.status, bpt.perc_comp, bpt.sys_bp, bpt.dia_bp);
@@ -1667,11 +1667,10 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	{
 	#ifdef CONFIG_FACTORY_TEST_SUPPORT
 		if(IsFTPPGTesting())
-			max86176_data_rx(&max86176, &databuf[1+SS_PACKET_COUNTERSIZE + SSACCEL_MODE1_DATASIZE]);
-	#endif	
+			max86176_data_rx(&max86176, data+SS_PACKET_COUNTERSIZE+SSACCEL_MODE1_DATASIZE);
+	#endif
 		
-		whrm_wspo2_suite_data_rx_mode1(&sensorhub_out, &databuf[1+SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE]);
-		
+		whrm_wspo2_suite_data_rx_mode1(&sensorhub_out, data+SS_PACKET_COUNTERSIZE+SSMAX86176_MODE1_DATASIZE+SSACCEL_MODE1_DATASIZE);
 	#ifdef PPG_DEBUG
 		LOGD("skin:%d, hr:%d, spo2:%d", sensorhub_out.scd_contact_state, sensorhub_out.hr, sensorhub_out.spo2);
 	#endif
@@ -1702,7 +1701,6 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	}
 #endif
 
-
 	if((((g_ppg_trigger&TRIGGER_BY_SCC) != 0) || (g_ppg_trigger == TRIGGER_BY_MENU))
 	#ifdef CONFIG_FACTORY_TEST_SUPPORT
 		&& !IsFTPPGTesting()
@@ -1710,7 +1708,7 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	#endif
 		)
 	{
-		sensorhub_get_output_scd_state(&databuf[1 + SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE], &scd_status);
+		sensorhub_get_output_scd_state(&data[1 + SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE], &scd_status);
 	#ifdef PPG_DEBUG
 		LOGD("scd_status:%d", scd_status);
 	#endif
@@ -2059,8 +2057,6 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 			uint32_t part_index,part_len;
 			
 			u32_dataIdx = BL_ST_PAGE_IDEX + page_num * u32_pageDataLen;
-
-
 			part_index = BL_FLASH_PARTIAL_SIZE*flash_partial;
 			part_len = BL_FLASH_PARTIAL_SIZE;
 			if(flash_partial == (8000/BL_FLASH_PARTIAL_SIZE))

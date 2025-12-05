@@ -656,7 +656,7 @@ void UartTempEventHandle(uint8_t *data, uint32_t data_len)
 			uint8_t buffer[3] = {0};
 			
 			ptr1 += strlen(COM_TEMP_GET_INFOR);
-			memcpy(buffer, ptr1, (ptr1-data));
+			memcpy(buffer, ptr1, data_len-(ptr1-data));
 		#ifdef TEMP_DEBUG
 			LOGD("sensor id:%d", buffer[0]*0x100 + buffer[1]);
 		#endif
@@ -667,7 +667,7 @@ void UartTempEventHandle(uint8_t *data, uint32_t data_len)
 		{
 			ptr1 += strlen(COM_TEMP_GET_DATA);
 			
-			TempDataProcess(ptr1, (ptr1-data));
+			TempDataProcess(ptr1, data_len-(ptr1-data));
 		}
 	}
 }

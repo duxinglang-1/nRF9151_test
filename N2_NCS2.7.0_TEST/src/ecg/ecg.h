@@ -9,6 +9,9 @@
 #ifndef __ECG_H__
 #define __ECG_H__
 
+#define COM_ECG_GET_INFOR		"INFOR:"
+#define COM_ECG_GET_DATA		"ECG_DATA:"
+
 //#define ECG_ADS1292
 #define ECG_MAX86176
 

@@ -2008,6 +2008,7 @@ static void uart_receive_data_handle(struct device *dev, uint8_t *data, uint32_t
 #ifdef CONFIG_AUDIO_SUPPORT
 	if(strncmp(data, AUDIO_DATA_HEAD, strlen(AUDIO_DATA_HEAD)) == 0)
 	{
+		UartAudioEventHandle(data, datalen);
 	}
 #endif
 

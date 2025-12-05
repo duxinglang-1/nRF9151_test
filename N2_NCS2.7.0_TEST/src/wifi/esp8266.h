@@ -9,6 +9,11 @@
 #ifndef __ESP8266_H__
 #define __ESP8266_H__
 
+#define COM_WIFI_GET_INFOR		"INFOR:"
+#define COM_WIFI_GET_SCAN_AP	"SCAN_AP:"
+#define COM_WIFI_SEND_DATA		"SEND_DATA:"
+#define COM_WIFI_RECE_DATA		"RECE_DATA:"
+
 #define WIFI_NODE_MAX	5
 #define WIFI_DATA_HEAD			"+CWLAP:"
 #define WIFI_DATA_RSSI_BEGIN	"("
@@ -30,11 +35,6 @@
 #define WIFI_DATA_END			"\r\n"
 
 #define WIFI_LOCAL_MIN_COUNT	3
-
-#define COM_WIFI_GET_INFOR		"INFOR:"
-#define COM_WIFI_GET_SCAN_AP	"SCAN_AP:"
-#define COM_WIFI_SEND_DATA		"SEND_DATA:"
-#define COM_WIFI_RECE_DATA		"RECE_DATA:"
 
 typedef struct
 {

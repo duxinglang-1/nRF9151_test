@@ -726,7 +726,7 @@ void TempMsgProcess(void)
 		if(!temp_power_flag)
 			return;
 		
-		CopcsSendData(UART_DATA_TEMP, COM_CLOSE, strlen(COM_CLOSE));
+		CopcsSendData(UART_DATA_TEMP, COM_TEMP_SET_CLOSE, strlen(COM_TEMP_SET_CLOSE));
 	
 		temp_power_flag = false;
 		k_timer_stop(&temp_stop_timer);

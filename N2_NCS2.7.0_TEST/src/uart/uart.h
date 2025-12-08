@@ -16,9 +16,6 @@
 #define AUDIO_DATA_HEAD	"AUDIO:"
 #define BLE_DATA_HEAD	"BLE:"
 
-#define COM_OPEN		"OPEN"
-#define COM_CLOSE		"CLOSE"
-
 typedef enum
 {
 	UART_DATA_PPG,

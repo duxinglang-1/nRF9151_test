@@ -9,6 +9,8 @@
 #ifndef __ESP8266_H__
 #define __ESP8266_H__
 
+#define COM_WIFI_SET_OPEN			"OPEN:"
+#define COM_WIFI_SET_CLOSE			"CLOSE:"
 #define COM_WIFI_GET_VER			"VER:"
 #define COM_WIFI_GET_MAC			"MAC:"
 #define COM_WIFI_GET_SCAN_AP		"SCAN_AP:"
@@ -20,7 +22,6 @@
 #define COM_WIFI_DISCONNECT_SERVER	"DISCONNECT_SERVER:"
 #define COM_WIFI_SEND_DATA			"SEND_DATA:"
 #define COM_WIFI_RECE_DATA			"RECE_DATA:"
-#define COM_WIFI_CLOSE				"CLOSE"
 
 #define WIFI_NODE_MAX	5
 #define WIFI_DATA_HEAD			"+CWLAP:"

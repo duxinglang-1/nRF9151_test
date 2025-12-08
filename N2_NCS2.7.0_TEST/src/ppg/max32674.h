@@ -13,6 +13,8 @@
 #include <zephyr/device.h>
 #include "datetime.h"
 
+#define COM_PPG_SET_OPEN		"OPEN:"
+#define COM_PPG_SET_CLOSE		"CLOSE:"
 #define COM_PPG_GET_INFOR		"INFOR:"
 #define COM_PPG_GET_HR			"HR:"
 #define COM_PPG_GET_SPO2		"SPO2:"

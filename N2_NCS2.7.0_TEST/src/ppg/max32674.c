@@ -1327,7 +1327,7 @@ void PPGStartCheck(void)
 
 	ppg_power_flag = 1;
 
-	strcpy(com_buff, COM_OPEN);
+	strcpy(com_buff, COM_PPG_SET_OPEN);
 	strcat(com_buff, ",");
 	switch(g_ppg_data)
 	{
@@ -1387,7 +1387,7 @@ void PPGStopCheck(void)
 		return;
 
 	PPG_Power_Off();
-	CopcsSendData(UART_DATA_PPG, COM_CLOSE, strlen(COM_CLOSE));
+	CopcsSendData(UART_DATA_PPG, COM_PPG_SET_CLOSE, strlen(COM_PPG_SET_CLOSE));
 
 	ppg_power_flag = 0;
 
@@ -1910,7 +1910,7 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 		uint8_t *ptr1,*ptr2;
 
 		ptr += strlen(PPG_DATA_HEAD);
-		if((ptr1 = strstr(ptr, COM_OPEN)) != NULL)
+		if((ptr1 = strstr(ptr, COM_PPG_SET_OPEN)) != NULL)
 		{
 			if(ppg_power_flag == 0)
 			{
@@ -1972,7 +1972,7 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 				}
 			}
 		}
-		else if((ptr1 = strstr(ptr, COM_CLOSE)) != NULL)
+		else if((ptr1 = strstr(ptr, COM_PPG_SET_CLOSE)) != NULL)
 		{
 		#ifdef PPG_DEBUG
 			LOGD("ppg hr start false!");

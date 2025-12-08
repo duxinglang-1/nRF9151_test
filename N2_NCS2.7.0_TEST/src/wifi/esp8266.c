@@ -289,7 +289,7 @@ void wifi_turn_on_and_scanning(void)
 	
 	wifi_is_on = true;
 
-	CopcsSendData(UART_DATA_WIFI, COM_OPEN, strlen(COM_OPEN));
+	CopcsSendData(UART_DATA_WIFI, COM_WIFI_SET_OPEN, strlen(COM_WIFI_SET_OPEN));
 }
 
 void wifi_turn_off_success(void)
@@ -313,7 +313,7 @@ void wifi_turn_off(void)
 	
 	wifi_is_on = false;
 
-	CopcsSendData(UART_DATA_WIFI, COM_WIFI_CLOSE, strlen(COM_WIFI_CLOSE));
+	CopcsSendData(UART_DATA_WIFI, COM_WIFI_SET_CLOSE, strlen(COM_WIFI_SET_CLOSE));
 }
 
 void wifi_rescanning(void)
@@ -531,7 +531,7 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 		else if((ptr1 = strstr(ptr, COM_WIFI_RECE_DATA)) != NULL)
 		{
 		}
-		else if((ptr1 = strstr(ptr, COM_WIFI_CLOSE)) != NULL)
+		else if((ptr1 = strstr(ptr, COM_WIFI_SET_CLOSE)) != NULL)
 		{
 			wifi_off_ok_flag = true;
 		}

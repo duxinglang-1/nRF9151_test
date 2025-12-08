@@ -17,7 +17,7 @@
 #include "font.h"
 #ifdef CONFIG_IMU_SUPPORT
 #include "Lsm6dso.h"
-#ifdef CONFIG_IMU_SUPPORT
+#ifdef CONFIG_SLEEP_SUPPORT
 #include "Sleep.h"
 #endif
 #endif
@@ -27,6 +27,9 @@
 #endif
 #ifdef CONFIG_TEMP_SUPPORT
 #include "temp.h"
+#endif
+#ifdef CONFIG_BLE_SUPPORT
+#include "Ble.h"
 #endif
 #include "screen.h"
 #include "uart.h"

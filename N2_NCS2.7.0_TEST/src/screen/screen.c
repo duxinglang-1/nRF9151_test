@@ -43,6 +43,9 @@
 #ifdef CONFIG_TOUCH_SUPPORT
 #include "CST816.h"
 #endif
+#ifdef CONFIG_BLE_SUPPORT
+#include "Ble.h"
+#endif
 #ifdef CONFIG_FOTA_DOWNLOAD
 #include "fota_mqtt.h"
 #endif/*CONFIG_FOTA_DOWNLOAD*/

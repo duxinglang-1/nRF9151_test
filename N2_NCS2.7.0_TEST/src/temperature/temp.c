@@ -25,6 +25,9 @@
 #ifdef CONFIG_CRC_SUPPORT
 #include "crc_check.h"
 #endif
+#ifdef CONFIG_BLE_SUPPORT
+#include "Ble.h"
+#endif
 
 //#define TEMP_DEBUG
 

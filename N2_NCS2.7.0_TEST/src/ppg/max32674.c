@@ -25,6 +25,9 @@
 #include "max_sh_api.h"
 #include "inner_flash.h"
 #include "external_flash.h"
+#ifdef CONFIG_BLE_SUPPORT
+#include "Ble.h"
+#endif
 #include "logger.h"
 
 //#define PPG_DEBUG

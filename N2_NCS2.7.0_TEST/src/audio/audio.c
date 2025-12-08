@@ -153,7 +153,6 @@ void UartAudioEventHandle(uint8_t *data, uint32_t data_len)
 		{
 		}
 	}
-
 }
 
 //io¿Ú³õÊ¼»¯ 

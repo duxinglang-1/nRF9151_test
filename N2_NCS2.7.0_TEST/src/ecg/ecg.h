@@ -9,6 +9,8 @@
 #ifndef __ECG_H__
 #define __ECG_H__
 
+#define COM_ECG_SET_OPEN		"OPEN:"
+#define COM_ECG_SET_CLOSE		"CLOSE:"
 #define COM_ECG_GET_INFOR		"INFOR:"
 #define COM_ECG_GET_DATA		"ECG_DATA:"
 

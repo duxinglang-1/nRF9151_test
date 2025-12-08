@@ -56,12 +56,9 @@ static bool wifi_rescanning_flag = false;
 static bool wifi_wait_timerout_flag = false;
 static bool wifi_off_retry_flag = false;
 static bool wifi_off_ok_flag = false;
-static bool wifi_get_infor_flag = false;
 
 static wifi_infor wifi_data = {0};
 
-static void WifiGetInforCallBack(struct k_timer *timer_id);
-K_TIMER_DEFINE(wifi_get_infor_timer, WifiGetInforCallBack, NULL);
 static void APP_Ask_wifi_Data_timerout(struct k_timer *timer_id);
 K_TIMER_DEFINE(wifi_scan_timer, APP_Ask_wifi_Data_timerout, NULL);
 static void wifi_rescan_timerout(struct k_timer *timer_id);
@@ -287,22 +284,16 @@ void wifi_start_scanning(void)
 ==============================================================================*/
 void wifi_turn_on_and_scanning(void)
 {
+	if(wifi_is_on)
+		return;
+	
 	wifi_is_on = true;
 
-#ifdef WIFI_DEBUG	
-	LOGD("begin");
-#endif
-
-	wifi_enable();
-	wifi_start_scanning();
+	CopcsSendData(UART_DATA_WIFI, COM_OPEN, strlen(COM_OPEN));
 }
 
 void wifi_turn_off_success(void)
 {
-#ifdef WIFI_DEBUG	
-	LOGD("begin");
-#endif
-
 	gpio_pin_set(gpio_wifi, WIFI_EN_PIN, 0);
 	wifi_off_retry_flag = false;
 	k_timer_stop(&wifi_off_retry_timer);
@@ -321,8 +312,8 @@ void wifi_turn_off(void)
 		return;
 	
 	wifi_is_on = false;
-	wifi_disable();
-	UartWifiOff();
+
+	CopcsSendData(UART_DATA_WIFI, COM_WIFI_CLOSE, strlen(COM_WIFI_CLOSE));
 }
 
 void wifi_rescanning(void)
@@ -330,216 +321,8 @@ void wifi_rescanning(void)
 	if(!wifi_is_on)
 		return;
 
-	//设置AT+CWLAP信号的排序方式：按RSSI排序，只显示信号强度和MAC模式
-	Send_Cmd_To_Esp8285(WIFI_SET_AP_SCAN_OPT,50);
-	Send_Cmd_To_Esp8285(WIFI_SET_AP_SCAN_START, 0);
-}
+	CopcsSendData(UART_DATA_WIFI, COM_WIFI_GET_RESCAN_AP, strlen(COM_WIFI_GET_RESCAN_AP));
 
-/*============================================================================
-* Function Name  : wifi_receive_data_handle
-* Description    : NRF9160 接收 ESP8285发来的AP扫描信息进行处理
-* Input          : buf:数据缓存 len:数据长度
-* Output         : None
-* Return         : None
-* CALL           : 可被外部调用
-==============================================================================*/
-void wifi_receive_data_handle(uint8_t *buf, uint32_t len)
-{
-	uint8_t count = 0;
-	uint8_t tmpbuf[256] = {0};
-	uint8_t *ptr = NULL;
-	uint8_t *ptr1 = NULL;
-	uint8_t *ptr2 = NULL;
-	bool flag = false;
-
-#ifdef WIFI_DEBUG	
-	LOGD("receive:%s", buf);
-#endif
-
-	if((ptr = strstr(buf, WIFI_SLEEP_REPLY)) != NULL)
-	{
-		wifi_off_ok_flag = true;
-		return;
-	}
-
-	if((ptr = strstr(buf, WIFI_GET_MAC_REPLY)) != NULL)
-	{
-		//AT+CIFSR
-		//+CIFSR:STAIP,"192.168.3.221"
-		//+CIFSR:STAMAC,"70:03:9f:d3:54:58"
-		//\r\n
-		//OK
-		//\r\n
-		ptr1 = strstr(ptr, WIFI_DATA_MAC_BEGIN);
-		if(ptr1)
-		{
-			ptr1++;
-			ptr2 = strstr(ptr1, WIFI_DATA_MAC_BEGIN);
-			if(ptr2)
-			{
-				memcpy(g_wifi_mac_addr, ptr1, ptr2-ptr1);
-			}
-		}
-		return;
-	}
-
-	if((ptr = strstr(buf, WIFI_GET_VER)) != NULL)
-	{
-		//AT+GMR
-		//AT version:1.6.2.0(Apr 13 2018 11:10:59)
-		//SDK version:2.2.1(6ab97e9)
-		//compile time:Jun  7 2018 19:34:26
-		//Bin version(Wroom 02):1.6.2
-		//OK
-		//\r\n
-		ptr1 = strstr(ptr, WIFI_DATA_VER_BIN);
-		if(ptr1)
-		{
-			ptr1++;
-			ptr1 = strstr(ptr1, WIFI_DATA_SEP_COLON);
-			if(ptr1)
-			{
-				ptr1++;
-				ptr2 = strstr(ptr1, WIFI_DATA_END);
-				if(ptr2)
-				{
-					memcpy(g_wifi_ver, ptr1, ptr2-ptr1);
-				}
-			}
-		}
-
-		wifi_off_flag = true;
-		return;
-	}
-
-	if((ptr = strstr(buf,WIFI_DATA_HEAD)) != NULL)
-	{
-		//+CWLAP:(-61,"f4:84:8d:8e:9f:eb")
-		//+CWLAP:(-67,"da:f1:5b:ff:f2:bc")
-		//+CWLAP:(-67,"e2:c1:13:2d:9e:47")
-		//+CWLAP:(-73,"7c:94:2a:39:9f:50")
-		//+CWLAP:(-76,"52:c2:e8:c6:fa:1e")
-		//+CWLAP:(-80,"80:ea:07:73:96:1a")
-		//\r\n
-		//OK
-		//\r\n 
-		while(1)
-		{
-			uint8_t len;
-		    uint8_t str_rssi[8]={0};
-			uint8_t str_mac[32]={0};
-
-			//head
-			ptr1 = strstr(ptr,WIFI_DATA_HEAD);
-			if(ptr1 == NULL)
-			{
-				ptr2 = ptr;
-				goto loop;
-			}
-
-			//scaned data flag
-			flag = true;
-			
-			//rssi
-			ptr += strlen(WIFI_DATA_HEAD);
-			ptr1 = strstr(ptr,WIFI_DATA_RSSI_BEGIN);         //取字符串中的,之后的字符
-			if(ptr1 == NULL)
-			{
-				ptr2 = ptr;
-				goto loop;
-			}
-			
-			ptr2 = strstr(ptr1+1,WIFI_DATA_RSSI_END);
-			if(ptr2 == NULL)
-			{
-				ptr2 = ptr1+1;
-				goto loop;
-			}
-
-			len = ptr2 - (ptr1+1);
-			if(len > 4)
-			{
-				goto loop;
-			}
-			
-			memcpy(str_rssi, ptr1+1, len);
-
-			//MAC
-			ptr1 = strstr(ptr2,WIFI_DATA_MAC_BEGIN);
-			if(ptr1 == NULL)
-			{
-				goto loop;
-			}
-
-			ptr2 = strstr(ptr1+1,WIFI_DATA_MAC_END);
-			if(ptr2 == NULL)
-			{
-				ptr2 = ptr1+1;
-				goto loop;
-			}
-
-			len = ptr2 - (ptr1+1);
-			if(len != 17)
-			{
-				goto loop;
-			}
-
-			memcpy(str_mac, ptr1+1, len);
-			
-			if(test_wifi_flag)
-			{
-				uint8_t buf[128] = {0};
-
-				count++;
-				if(count<=6)
-				{
-				#if defined(LCD_VGM068A4W01_SH1106G)||defined(LCD_VGM096064A6W01_SP5090)
-					sprintf(buf, "%02d|", -(atoi(str_rssi)));
-				#else
-					sprintf(buf, "%s|%02d\n", str_mac, -(atoi(str_rssi)));
-				#endif
-					strcat(tmpbuf, buf);
-				}
-			}
-			else
-			{
-				strcpy(wifi_data.node[wifi_data.count].rssi, str_rssi);
-				strcpy(wifi_data.node[wifi_data.count].mac, str_mac);
-				
-				wifi_data.count++;
-				if(wifi_data.count == WIFI_NODE_MAX)
-					break;
-			}
-
-		loop:
-			ptr = ptr2+1;
-			if(*ptr == 0x00)
-				break;
-		}
-	}	
-	
-	if(test_wifi_flag)
-	{
-		if(count > 0)
-		{
-			memset(wifi_test_info,0,sizeof(wifi_test_info));
-			sprintf(wifi_test_info, "%d\n", count);
-			strcat(wifi_test_info, tmpbuf);
-			wifi_test_update_flag = true;
-
-		#ifdef CONFIG_FACTORY_TEST_SUPPORT
-			FTWifiStatusUpdate(count);
-		#endif
-		}
-	}
-	else
-	{
-		if(flag && (wifi_data.count >= WIFI_LOCAL_MIN_COUNT))	//扫描有效数据
-		{
-			wifi_get_scanned_data();
-			wifi_off_flag = true;
-		}
-	}
 }
 
 void MenuStartWifi(void)
@@ -570,10 +353,10 @@ void FTStopWifi(void)
 
 void wifi_test_update(void)
 {
-	//if(screen_id == SCREEN_ID_WIFI_TEST)
-	//{
-	//	scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
-	//}
+	if(screen_id == SCREEN_ID_WIFI_TEST)
+	{
+		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
 }
 
 void test_wifi(void)
@@ -581,20 +364,190 @@ void test_wifi(void)
 	MenuStartWifi();
 }
 
-static void WifiGetInforCallBack(struct k_timer *timer_id)
+void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 {
-	wifi_get_infor_flag = true;
+	uint8_t count = 0;
+	uint8_t *ptr,tmpbuf[256] = {0};
+	bool flag = false;
+	
+	if(data == NULL || data_len == 0)
+		return;
+
+	ptr = strstr(data, WIFI_DATA_HEAD);
+	if(ptr != NULL)
+	{
+		uint8_t *ptr1,*ptr2;
+
+		ptr += strlen(WIFI_DATA_HEAD);
+		if((ptr1 = strstr(ptr, COM_WIFI_GET_VER)) != NULL)
+		{
+			ptr1 += strlen(COM_WIFI_GET_VER);
+			memcpy(g_wifi_ver, ptr1, data_len-(ptr1-data));
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_GET_MAC)) != NULL)
+		{
+			ptr1 += strlen(COM_WIFI_GET_MAC);
+			memcpy(g_wifi_mac_addr, ptr1, data_len-(ptr1-data));
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_GET_SCAN_AP)) != NULL)
+		{
+			ptr = ptr1 + strlen(COM_WIFI_GET_SCAN_AP);
+			
+			while(1)
+			{
+				uint8_t len;
+			    uint8_t str_rssi[8]={0};
+				uint8_t str_mac[32]={0};
+
+				//head
+				ptr1 = strstr(ptr,WIFI_DATA_HEAD);
+				if(ptr1 == NULL)
+				{
+					ptr2 = ptr;
+					goto loop;
+				}
+
+				//scaned data flag
+				flag = true;
+				
+				//rssi
+				ptr += strlen(WIFI_DATA_HEAD);
+				ptr1 = strstr(ptr,WIFI_DATA_RSSI_BEGIN);         //取字符串中的,之后的字符
+				if(ptr1 == NULL)
+				{
+					ptr2 = ptr;
+					goto loop;
+				}
+				
+				ptr2 = strstr(ptr1+1,WIFI_DATA_RSSI_END);
+				if(ptr2 == NULL)
+				{
+					ptr2 = ptr1+1;
+					goto loop;
+				}
+
+				len = ptr2 - (ptr1+1);
+				if(len > 4)
+				{
+					goto loop;
+				}
+				
+				memcpy(str_rssi, ptr1+1, len);
+
+				//MAC
+				ptr1 = strstr(ptr2,WIFI_DATA_MAC_BEGIN);
+				if(ptr1 == NULL)
+				{
+					goto loop;
+				}
+
+				ptr2 = strstr(ptr1+1,WIFI_DATA_MAC_END);
+				if(ptr2 == NULL)
+				{
+					ptr2 = ptr1+1;
+					goto loop;
+				}
+
+				len = ptr2 - (ptr1+1);
+				if(len != 17)
+				{
+					goto loop;
+				}
+
+				memcpy(str_mac, ptr1+1, len);
+				
+				if(test_wifi_flag)
+				{
+					uint8_t buf[128] = {0};
+
+					count++;
+					if(count<=6)
+					{
+					#if defined(LCD_VGM068A4W01_SH1106G)||defined(LCD_VGM096064A6W01_SP5090)
+						sprintf(buf, "%02d|", -(atoi(str_rssi)));
+					#else
+						sprintf(buf, "%s|%02d\n", str_mac, -(atoi(str_rssi)));
+					#endif
+						strcat(tmpbuf, buf);
+					}
+				}
+				else
+				{
+					strcpy(wifi_data.node[wifi_data.count].rssi, str_rssi);
+					strcpy(wifi_data.node[wifi_data.count].mac, str_mac);
+					
+					wifi_data.count++;
+					if(wifi_data.count == WIFI_NODE_MAX)
+						break;
+				}
+
+			loop:
+				ptr = ptr2+1;
+				if(*ptr == 0x00)
+					break;
+			}
+
+			if(test_wifi_flag)
+			{
+				if(count > 0)
+				{
+					memset(wifi_test_info,0,sizeof(wifi_test_info));
+					sprintf(wifi_test_info, "%d\n", count);
+					strcat(wifi_test_info, tmpbuf);
+					wifi_test_update_flag = true;
+
+				#ifdef CONFIG_FACTORY_TEST_SUPPORT
+					FTWifiStatusUpdate(count);
+				#endif
+				}
+			}
+			else
+			{
+				if(flag && (wifi_data.count >= WIFI_LOCAL_MIN_COUNT))	//扫描有效数据
+				{
+					wifi_get_scanned_data();
+					wifi_off_flag = true;
+				}
+			}
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_SEARCH_AP)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_CONNECT_AP)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_DISCONNECT_AP)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_CONNECT_SERVER)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_DISCONNECT_SERVER)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_SEND_DATA)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_RECE_DATA)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_WIFI_CLOSE)) != NULL)
+		{
+			wifi_off_ok_flag = true;
+		}
+	}
+}
+
+void wifi_init(void)
+{
+#ifdef WIFI_DEBUG
+	LOGD("begin");
+#endif
 }
 
 void WifiMsgProcess(void)
 {
 	static uint8_t wifi_sleep_retry = 0;
-	
-	if(wifi_get_infor_flag)
-	{
-		wifi_get_infor_flag = false;
-		wifi_get_infor();
-	}
 	
 	if(wifi_on_flag)
 	{
@@ -664,44 +617,4 @@ void WifiMsgProcess(void)
 		wifi_test_update_flag = false;
 		wifi_test_update();
 	}	
-}
-
-void wifi_get_infor(void)
-{
-	//设置工作模式 1:station模式 2:AP模式 3:兼容AP+station模式
-	Send_Cmd_To_Esp8285(WIFI_SET_MODE,50);
-	//获取Mac地址
-	Send_Cmd_To_Esp8285(WIFI_GET_MAC_CMD,50);
-	//获取版本信息
-	Send_Cmd_To_Esp8285(WIFI_GET_VER,50);
-
-	k_timer_start(&wifi_turn_off_timer, K_SECONDS(5), K_NO_WAIT);
-}
-
-void wifi_init(void)
-{
-#ifdef WIFI_DEBUG
-	LOGD("begin");
-#endif
-
-	uart_wifi_init();
-
-	gpio_wifi = DEVICE_DT_GET(WIFI_PORT);
-	if(!gpio_wifi)
-	{
-	#ifdef WIFI_DEBUG
-		LOGD("Could not get gpio!");
-	#endif
-		return;
-	}
-
-	gpio_pin_configure(gpio_wifi, WIFI_RST_PIN, GPIO_OUTPUT);
-	gpio_pin_configure(gpio_wifi, WIFI_EN_PIN, GPIO_OUTPUT);
-
-	gpio_pin_set(gpio_wifi, WIFI_RST_PIN, 0);
-	k_sleep(K_MSEC(20));
-	gpio_pin_set(gpio_wifi, WIFI_RST_PIN, 1);
-	gpio_pin_set(gpio_wifi, WIFI_EN_PIN, 1);
-
-	k_timer_start(&wifi_get_infor_timer, K_SECONDS(3), K_NO_WAIT);
 }

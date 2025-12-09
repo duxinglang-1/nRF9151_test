@@ -137,16 +137,30 @@ void system_init(void)
 	pmu_init();
 	key_init();
 	flash_init();
-	
+	uart_init();
 #ifdef CONFIG_AUDIO_SUPPORT	
 	audio_init();
 #endif
-	uart_init();
+#ifdef CONFIG_BLE_SUPPORT
+	BLE_init();
+#endif
+#ifdef CONFIG_ECG_SUPPORT
+	ECG_init();
+#endif
 #ifdef CONFIG_IMU_SUPPORT
 	IMU_init(&imu_work_q);
 #endif
+#ifdef CONFIG_PPG_SUPPORT
+	PPG_init();
+#endif
 #ifdef CONFIG_PRESSURE_SUPPORT
 	pressure_init();
+#endif
+#ifdef CONFIG_TEMP_SUPPORT
+	temp_init();
+#endif
+#ifdef CONFIG_WIFI_SUPPORT
+	wifi_init();
 #endif
 #ifdef CONFIG_DATA_DOWNLOAD_SUPPORT
 	dl_init();
@@ -229,6 +243,22 @@ int main(void)
 		NBMsgProcess();
 		GPSMsgProcess();
 		PMUMsgProcess();
+		LCDMsgProcess();
+		SettingsMsgPorcess();
+		SOSMsgProc();
+		UartMsgProc();
+	#ifdef CONFIG_ALARM_SUPPORT
+		AlarmMsgProcess();
+	#endif
+	#ifdef CONFIG_AUDIO_SUPPORT	
+		AudioMsgProcess();
+	#endif
+	#ifdef CONFIG_BLE_SUPPORT
+		BLEMsgProcess();
+	#endif
+	#ifdef CONFIG_ECG_SUPPORT
+		ECGMsgProcess();
+	#endif
 	#ifdef CONFIG_IMU_SUPPORT	
 		IMUMsgProcess();
 	#ifdef CONFIG_FALL_DETECT_SUPPORT
@@ -238,23 +268,21 @@ int main(void)
 	#ifdef CONFIG_PPG_SUPPORT	
 		PPGMsgProcess();
 	#endif
-		LCDMsgProcess();
+	#ifdef CONFIG_PRESSURE_SUPPORT
+		PressureMsgProcess();
+	#endif
+	#ifdef CONFIG_TEMP_SUPPORT
+		TempMsgProcess();
+	#endif
 	#ifdef CONFIG_TOUCH_SUPPORT
 		TPMsgProcess();
 	#endif
-	#ifdef CONFIG_ALARM_SUPPORT
-		AlarmMsgProcess();
-	#endif
-		SettingsMsgPorcess();
-		SOSMsgProc();
 	#ifdef CONFIG_WIFI_SUPPORT
 		WifiMsgProcess();
-	#endif
-		UartMsgProc();
+	#endif	
 	#ifdef CONFIG_ANIMATION_SUPPORT
 		AnimaMsgProcess();
 	#endif		
-		ScreenMsgProcess();
 	#ifdef CONFIG_DATA_DOWNLOAD_SUPPORT
 		DlMsgProc();
 	#endif
@@ -280,6 +308,7 @@ int main(void)
 	#ifdef CONFIG_LOG
 		LogMsgProcess();
 	#endif
+		ScreenMsgProcess();
 		system_init_completed();
 		k_cpu_idle();
 	}

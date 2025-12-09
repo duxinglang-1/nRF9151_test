@@ -1159,7 +1159,7 @@ void SendPowerOnData(void)
 
 	//ble version
 #ifdef CONFIG_BLE_SUPPORT	
-	strcat(reply, &g_nrf5340_ver[15]);
+	strcat(reply, &g_ble_app_ver[15]);
 #else
 	strcat(reply, "NO BLE");
 #endif

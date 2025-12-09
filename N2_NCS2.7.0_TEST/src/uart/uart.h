@@ -28,7 +28,7 @@ typedef enum
 }UART_DATA_TYPE;
 
 extern uint8_t g_ble_mac_addr[20];
-extern uint8_t g_nrf5340_ver[128];
+extern uint8_t g_ble_app_ver[64];
 
 extern void uart_ble_test(void);
 extern void MCU_get_nrf52810_ver(void);

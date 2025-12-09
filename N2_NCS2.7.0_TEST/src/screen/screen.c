@@ -6985,7 +6985,7 @@ void DeviceShowQRStatus(void)
 #endif
 	//BLE FW ver
 	strcat(buf, "BLE:");
-	strcat(buf, &g_nrf5340_ver[15]);
+	strcat(buf, &g_ble_app_ver[15]);
 	strcat(buf, ",");
 	//BLE Mac
 	strcat(buf, "BLE MAC:");

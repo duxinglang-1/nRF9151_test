@@ -32,7 +32,7 @@ static bool reply_cur_data_flag = false;
 static bool redraw_blt_status_flag = false;
 
 uint8_t g_ble_mac_addr[20] = {0};
-uint8_t g_nrf5340_ver[128] = {0};
+uint8_t g_ble_app_ver[64] = {0};
 
 ENUM_BLE_STATUS g_ble_status = BLE_STATUS_BROADCAST;
 ENUM_BLE_MODE g_ble_mode = BLE_MODE_TURN_OFF;
@@ -1484,11 +1484,11 @@ void get_ble_ver_response(uint8_t *buf, uint32_t len)
 
 	for(i=0;i<len-9;i++)
 	{
-		g_nrf5340_ver[i] = buf[7+i];
+		g_ble_app_ver[i] = buf[7+i];
 	}
 
 #ifdef UART_DEBUG
-	LOGD("g_nrf5340_ver:%s", g_nrf5340_ver);
+	LOGD("g_ble_app_ver:%s", g_ble_app_ver);
 #endif
 }
 
@@ -1784,7 +1784,6 @@ void ble_receive_data_handle(uint8_t *buf, uint32_t len)
 void UartBleEventHandle(uint8_t *data, uint32_t data_len)
 {
 	uint8_t *ptr;
-	static uint32_t page_num=0,flash_partial=0;
 
 	if(data == NULL || data_len == 0)
 		return;
@@ -1801,12 +1800,24 @@ void UartBleEventHandle(uint8_t *data, uint32_t data_len)
 		else if((ptr1 = strstr(ptr, COM_BLE_SET_CLOSE)) != NULL)
 		{
 		}
+		else if((ptr1 = strstr(ptr, COM_BLE_GET_VER)) != NULL)
+		{
+			ptr1 += strlen(COM_BLE_GET_VER);
+			memset(g_ble_app_ver, 0, sizeof(g_ble_app_ver));
+			memcpy(g_ble_app_ver, ptr1, data_len-(ptr1-data));
+		}
+		else if((ptr1 = strstr(ptr, COM_BLE_GET_MAC)) != NULL)
+		{
+			ptr1 += strlen(COM_BLE_GET_MAC);
+			memset(g_ble_mac_addr, 0, sizeof(g_ble_mac_addr));
+			memcpy(g_ble_mac_addr, ptr1, data_len-(ptr1-data));
+		}
 	}
 }
 
 void BLE_init(void)
 {
-	k_timer_start(&get_ble_info_timer, K_SECONDS(2), K_NO_WAIT);
+	k_timer_start(&get_ble_info_timer, K_SECONDS(1), K_NO_WAIT);
 }
 
 void BLEMsgProcess(void)
@@ -1831,29 +1842,8 @@ void BLEMsgProcess(void)
 	
 	if(get_ble_info_flag)
 	{
-		static uint8_t index = 0;
-		switch(index)
-		{
-		case 0:
-			index = 1;
-			MCU_get_nrf52810_ver();
-			k_timer_start(&get_ble_info_timer, K_MSEC(100), K_NO_WAIT);
-			break;
-		case 1:
-			index = 2;
-			MCU_get_ble_mac_address();
-			k_timer_start(&get_ble_info_timer, K_MSEC(100), K_NO_WAIT);
-			break;
-	#ifdef CONFIG_BLE_SUPPORT	
-		case 2:
-			MCU_get_ble_status();
-			break;
-	#else
-		//case 2:
-		//	MCU_set_ble_work_mode(BLE_MODE_TURN_OFF);
-		//	break;
-	#endif	
-		}
+		CopcsSendData(UART_DATA_BLE, COM_BLE_GET_VER, strlen(COM_BLE_GET_VER));
+		CopcsSendData(UART_DATA_BLE, COM_BLE_GET_MAC, strlen(COM_BLE_GET_MAC));
 
 		get_ble_info_flag = false;
 	}

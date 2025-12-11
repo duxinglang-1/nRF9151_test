@@ -42,6 +42,7 @@ extern uint16_t  BACK_COLOR; //背景颜色.默认为白色
 #define	RST		2
 #define	RS		0
 #define	EN		9
+#define VBAT	8
 
 #define LCD_DATA_LEN 4096
 

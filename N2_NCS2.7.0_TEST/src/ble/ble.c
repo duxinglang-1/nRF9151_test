@@ -1812,6 +1812,11 @@ void UartBleEventHandle(uint8_t *data, uint32_t data_len)
 			memset(g_ble_mac_addr, 0, sizeof(g_ble_mac_addr));
 			memcpy(g_ble_mac_addr, ptr1, data_len-(ptr1-data));
 		}
+		else if((ptr1 = strstr(ptr, COM_BLE_RECE_DATA)) != NULL)
+		{
+			ptr1 += strlen(COM_BLE_RECE_DATA);
+			ble_receive_data_handle(ptr1, data_len-(ptr1-data));
+		}
 	}
 }
 

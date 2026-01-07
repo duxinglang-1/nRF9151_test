@@ -39,6 +39,8 @@ static bool temp_redraw_data_flag = false;
 static bool temp_power_flag = false;
 static bool menu_start_temp = false;
 static bool ft_start_temp = false;
+static bool app_start_temp = false;
+
 
 static uint32_t measure_count = 0;
 static float t_sensor = 0.0;		//传感器温度值
@@ -484,6 +486,11 @@ void MenuStopTemp(void)
 	temp_stop_flag = true;
 }
 
+void APPStartTemp(void)
+{
+	app_start_temp = true;
+}
+
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
 void FTStartTemp(void)
 {
@@ -696,6 +703,12 @@ void TempMsgProcess(void)
 		menu_start_temp = false;
 	}
 
+	if(app_start_temp)
+	{
+		StartTemp(TEMP_TRIGGER_BY_APP);
+		app_start_temp = false;
+	}
+	
 	if(ft_start_temp)
 	{
 		StartTemp(TEMP_TRIGGER_BY_FT);

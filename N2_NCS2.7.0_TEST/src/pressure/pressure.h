@@ -42,6 +42,7 @@ extern bool pressure_interrupt_flag;
 extern float g_prs;
 extern float g_tmp;
 
+extern uint8_t press_test_info[256];
 extern pressure_ctx_t pressure_dev_ctx;
 
 #endif/*__PRESSURE_H__*/

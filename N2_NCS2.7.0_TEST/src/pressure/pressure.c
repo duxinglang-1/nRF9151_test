@@ -31,6 +31,8 @@ bool pressure_interrupt_flag = false;
 float g_prs = 0.0;
 float g_tmp = 0.0;
 
+uint8_t press_test_info[256] = {0};
+
 pressure_ctx_t pressure_dev_ctx;
 
 void PressureStop(void)
@@ -71,6 +73,18 @@ bool GetPressure(float *psr)
 	*psr = g_prs;
 	return true;
 }
+
+#ifdef CONFIG_FACTORY_TEST_SUPPORT
+void FTStartPress(void)
+{
+	pressure_start();
+}
+
+void FTStopPress(void)
+{
+	pressure_stop();
+}
+#endif
 
 void pressure_init(void)
 {

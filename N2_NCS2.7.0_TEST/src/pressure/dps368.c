@@ -36,7 +36,6 @@
 #define PRESSURE_PORT	""
 #endif
 
-
 #define ARRAYNUM(a) (sizeof(a)/sizeof(a[0]))
 
 static struct device *i2c_pressure;
@@ -861,6 +860,12 @@ void DPS368_CalculatePrs(void)
 
 	pressure_get_ok = true;
 	g_prs = Pcomp;
+
+	sprintf(press_test_info, "pressure:%f, temp:%f", g_prs, g_tmp);
+	
+#ifdef CONFIG_FACTORY_TEST_SUPPORT	
+	FTPressStatusUpdate(g_prs);
+#endif
 }
 
 void DPS368_CalculateFIFOData(void)

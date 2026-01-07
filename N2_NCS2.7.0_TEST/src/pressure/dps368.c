@@ -861,9 +861,8 @@ void DPS368_CalculatePrs(void)
 	pressure_get_ok = true;
 	g_prs = Pcomp;
 
+#ifdef CONFIG_FACTORY_TEST_SUPPORT
 	sprintf(press_test_info, "pressure:%f, temp:%f", g_prs, g_tmp);
-	
-#ifdef CONFIG_FACTORY_TEST_SUPPORT	
 	FTPressStatusUpdate(g_prs);
 #endif
 }

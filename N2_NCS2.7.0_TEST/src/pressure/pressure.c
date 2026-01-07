@@ -31,7 +31,9 @@ bool pressure_interrupt_flag = false;
 float g_prs = 0.0;
 float g_tmp = 0.0;
 
+#ifdef CONFIG_FACTORY_TEST_SUPPORT
 uint8_t press_test_info[256] = {0};
+#endif
 
 pressure_ctx_t pressure_dev_ctx;
 

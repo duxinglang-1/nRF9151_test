@@ -34,6 +34,8 @@ typedef enum
 	FT_MAIN,
 	FT_AUDIO,
 	FT_WRIST,
+	FT_ECG,
+	FT_PRESS,
 	FT_AGING,
 	FT_MAX
 }FT_MENU_ID;
@@ -70,6 +72,8 @@ typedef struct
 	uint8_t gps_ret;
 	uint8_t audio_ret;
 	uint8_t wrist_ret;
+	uint8_t ecg_ret;
+	uint8_t press_ret;	
 }ft_smt_results_t;
 
 typedef struct
@@ -90,6 +94,8 @@ typedef struct
 	uint8_t gps_ret;
 	uint8_t audio_ret;
 	uint8_t wrist_ret;
+	uint8_t ecg_ret;
+	uint8_t press_ret;	
 }ft_assem_results_t;
 
 typedef struct
@@ -131,6 +137,8 @@ extern void FTMainMenuPPGProc(void);
 extern void FTMainMenuPMUProc(void);
 extern void FTMainMenuVibrateProc(void);
 extern void FTMainMenuWifiProc(void);
+extern void FTMainMenuEcgProc(void);
+extern void FTMainMenuPressProc(void);
 extern void FTMainMenuNetProc(void);
 extern void FTMainMenuGPSProc(void);
 

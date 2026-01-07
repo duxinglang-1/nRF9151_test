@@ -151,6 +151,22 @@ void FTMainMenuPPGProc(void)
 	EnterFTMenuPPG();
 }
 
+void FTMainMenuECGProc(void)
+{
+	ft_main_menu_index = FT_ECG;
+	if(g_ft_status == FT_STATUS_ASSEM)	//组装测试没有电流测试，按键测试排在第一位，序号需要从0开始
+		ft_main_menu_index--;
+	EnterFTMenuECG();
+}
+
+void FTMainMenuPressProc(void)
+{
+	ft_main_menu_index = FT_PRESS;
+	if(g_ft_status == FT_STATUS_ASSEM)	//组装测试没有电流测试，按键测试排在第一位，序号需要从0开始
+		ft_main_menu_index--;
+	EnterFTMenuPress();
+}
+
 void FTMainMenuPMUProc(void)
 {
 	ft_main_menu_index = FT_PMU;
@@ -224,7 +240,7 @@ const ft_menu_t FT_SMT_MENU_MAIN =
 {
 	FT_MAIN,
 	0,
-	15,
+	17,
 	{
 		//电流测试
 		{
@@ -281,6 +297,16 @@ const ft_menu_t FT_SMT_MENU_MAIN =
 			{0x0050,0x0050,0x0047,0x6D4B,0x8BD5,0x0000},
 			FTMainMenuPPGProc,
 		},
+		//ECG测试
+		{
+			{0x0045,0x0043,0x0047,0x6D4B,0x8BD5,0x0000},
+			FTMainMenuECGProc,
+		},
+		//气压测试
+		{
+			{0x6C14,0x538B,0x6D4B,0x8BD5,0x0000},
+			FTMainMenuPressProc,
+		},
 		//充电测试
 		{
 			{0x5145,0x7535,0x6D4B,0x8BD5,0x0000},
@@ -320,7 +346,7 @@ const ft_menu_t FT_ASSEM_MENU_MAIN =
 {
 	FT_MAIN,
 	0,
-	14,
+	16,
 	{
 		//按键测试
 		{
@@ -366,6 +392,16 @@ const ft_menu_t FT_ASSEM_MENU_MAIN =
 		{
 			{0x0050,0x0050,0x0047,0x6D4B,0x8BD5,0x0000},
 			FTMainMenuPPGProc,
+		},
+		//ECG测试
+		{
+			{0x0045,0x0043,0x0047,0x6D4B,0x8BD5,0x0000},
+			FTMainMenuECGProc,
+		},
+		//气压测试
+		{
+			{0x6C14,0x538B,0x6D4B,0x8BD5,0x0000},
+			FTMainMenuPressProc,
 		},
 		//充电测试
 		{
@@ -761,6 +797,12 @@ void FactoryTestProccess(void)
 		break;	
 	case FT_PPG:
 		FTMenuPPGProcess();
+		break;
+	case FT_ECG:
+		FTMenuECGProcess();
+		break;
+	case FT_PRESS:
+		FTMenuPressProcess();
 		break;
 	case FT_SIM:
 		FTMenuSIMProcess();

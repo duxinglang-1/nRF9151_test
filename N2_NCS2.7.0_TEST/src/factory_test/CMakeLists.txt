@@ -24,3 +24,5 @@ target_sources_ifdef(CONFIG_PPG_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/
 target_sources_ifdef(CONFIG_TEMP_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ft_temp.c)
 target_sources_ifdef(CONFIG_TOUCH_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ft_touch.c)
 target_sources_ifdef(CONFIG_WIFI_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ft_wifi.c)
+target_sources_ifdef(CONFIG_ECG_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ft_ecg.c)
+target_sources_ifdef(CONFIG_PRESSURE_SUPPORT app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ft_press.c)

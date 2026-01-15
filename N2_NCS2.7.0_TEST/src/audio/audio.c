@@ -158,7 +158,7 @@ void UartAudioEventHandle(uint8_t *data, uint32_t data_len)
 //io¿Ú³õÊ¼»¯ 
 void audio_init(void)
 {
-	Delay_ms(100);
+	//Delay_ms(100);
 	
 	CopcsSendData(UART_DATA_AUIOD, COM_AUDIO_GET_INFOR, strlen(COM_AUDIO_GET_INFOR));
 }

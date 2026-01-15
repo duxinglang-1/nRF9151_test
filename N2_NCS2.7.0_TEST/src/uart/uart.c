@@ -49,8 +49,8 @@
 #define COPCS_PORT	""
 #endif
 
-#define COPCS_INT_PIN		4
-#define COPCS_WAKE_PIN		7
+#define COPCS_INT_PIN		7
+#define COPCS_WAKE_PIN		4
 
 #define BUF_MAXSIZE	2048
 
@@ -267,7 +267,7 @@ void CopcsSendData(UART_DATA_TYPE type, uint8_t *data, uint32_t datalen)
 	int ret;
 	uint8_t head_len, *ptr;
 
-	ptr = k_malloc(datalen);
+	ptr = k_malloc(datalen+UART_DATA_HEAD_MAX_LEN);
 	if(ptr != NULL)
 	{
 		memset(ptr, 0x00, datalen);
@@ -431,7 +431,7 @@ void uart_sleep_in(struct device *dev)
 
 static void copcs_interrupt_event(struct device *interrupt, struct gpio_callback *cb, uint32_t pins)
 {
-#ifdef UART_DEBUG
+#if 1//def UART_DEBUG
 	LOGD("begin");
 #endif
 	uart_wake_flag = true;

@@ -13,6 +13,8 @@
 #include <zephyr/device.h>
 #include <stdio.h>
 
+#define TP_GPIO_ACT_I2C
+
 #define TP_I2C_ADDRESS			0x15
 #define TP_UPDATE_I2C_ADDRESS	0x6A
 

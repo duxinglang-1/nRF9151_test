@@ -16,6 +16,8 @@
 #define AUDIO_DATA_HEAD	"AUDIO:"
 #define BLE_DATA_HEAD	"BLE:"
 
+#define UART_DATA_HEAD_MAX_LEN	8
+
 typedef enum
 {
 	UART_DATA_PPG,

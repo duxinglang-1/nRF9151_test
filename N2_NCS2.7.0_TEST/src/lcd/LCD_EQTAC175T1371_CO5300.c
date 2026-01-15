@@ -464,10 +464,12 @@ void LCD_Init(void)
 #endif
 	gpio_pin_configure(gpio_lcd, RST, GPIO_OUTPUT);
 	gpio_pin_configure(gpio_lcd, RS, GPIO_OUTPUT);
+	gpio_pin_configure(gpio_lcd, VBAT, GPIO_OUTPUT);
 	gpio_pin_configure(gpio_lcd, EN, GPIO_OUTPUT);
 
 	LCD_SPI_Init();
 
+	gpio_pin_set(gpio_lcd, VBAT, 1);
 	gpio_pin_set(gpio_lcd, EN, 1);
 	
 	gpio_pin_set(gpio_lcd, RST, 1);

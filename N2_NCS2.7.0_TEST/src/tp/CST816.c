@@ -22,15 +22,24 @@
 #include "logger.h"
 
 //#define TP_DEBUG
-#define TP_TEST
 
-#if defined(TP_DEBUG)||defined(TP_TEST)
+#ifdef TP_GPIO_ACT_I2C
+#define TP_SCL			28
+#define TP_SDA			27
+
+#else/*TP_GPIO_ACT_I2C*/
+
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c1), okay)
 #define TP_DEV DT_NODELABEL(i2c1)
 #else
 #error "i2c1 devicetree node is disabled"
 #define TP_DEV	""
 #endif
+
+#define TP_SCL			28
+#define TP_SDA			27
+
+#endif/*TP_GPIO_ACT_I2C*/
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(gpio0), okay)
 #define TP_PORT DT_NODELABEL(gpio0)
@@ -41,9 +50,6 @@
 
 #define TP_RESET		29
 #define TP_EINT			26
-#define TP_SCL			28
-#define TP_SDA			27
-#endif
 
 bool tp_int_flag = false;
 bool tp_trige_flag = false;
@@ -62,6 +68,7 @@ static struct gpio_callback gpio_cb;
 static TPInfo tp_event_info = {0};
 static TpEventNode *tp_event_tail = NULL;
 
+#if 0
 void test_i2c(void)
 {
 	struct device *i2c_dev;
@@ -116,10 +123,225 @@ void test_i2c(void)
 		}
 	}
 }
+#endif
 
-#if defined(TP_DEBUG)||defined(TP_TEST)
+#ifdef TP_GPIO_ACT_I2C
+static void I2C_INIT(void)
+{
+	if(gpio_ctp == NULL)
+		gpio_ctp = DEVICE_DT_GET(TP_PORT);
+
+	gpio_pin_configure(gpio_ctp, TP_SCL, GPIO_OUTPUT);
+	gpio_pin_configure(gpio_ctp, TP_SDA, GPIO_OUTPUT);
+	gpio_pin_set(gpio_ctp, TP_SCL, 1);
+	gpio_pin_set(gpio_ctp, TP_SDA, 1);
+}
+
+static void I2C_SDA_OUT(void)
+{
+	gpio_pin_configure(gpio_ctp, TP_SDA, GPIO_OUTPUT);
+}
+
+static void I2C_SDA_IN(void)
+{
+	gpio_pin_configure(gpio_ctp, TP_SDA, GPIO_INPUT);
+}
+
+static void I2C_SDA_H(void)
+{
+	gpio_pin_set(gpio_ctp, TP_SDA, 1);
+}
+
+static void I2C_SDA_L(void)
+{
+	gpio_pin_set(gpio_ctp, TP_SDA, 0);
+}
+
+static void I2C_SCL_H(void)
+{
+	gpio_pin_set(gpio_ctp, TP_SCL, 1);
+}
+
+static void I2C_SCL_L(void)
+{
+	gpio_pin_set(gpio_ctp, TP_SCL, 0);
+}
+
+//产生起始信号
+static void I2C_Start(void)
+{
+	I2C_SDA_OUT();
+
+	I2C_SDA_H();
+	I2C_SCL_H();
+	I2C_SDA_L();
+	I2C_SCL_L();
+}
+
+//产生停止信号
+static void I2C_Stop(void)
+{
+	I2C_SDA_OUT();
+
+	I2C_SCL_L();
+	I2C_SDA_L();
+	I2C_SCL_H();
+	I2C_SDA_H();
+}
+
+//主机产生应答信号ACK
+static void I2C_Ack(void)
+{
+	I2C_SDA_OUT();
+	
+	I2C_SDA_L();
+	I2C_SCL_L();
+	I2C_SCL_H();
+	I2C_SCL_L();
+}
+
+//主机不产生应答信号NACK
+static void I2C_NAck(void)
+{
+	I2C_SDA_OUT();
+	
+	I2C_SDA_H();
+	I2C_SCL_L();
+	I2C_SCL_H();
+	I2C_SCL_L();
+}
+
+//等待从机应答信号
+//返回值：1 接收应答失败
+//		  0 接收应答成功
+static uint8_t I2C_Wait_Ack(void)
+{
+	uint8_t val,tempTime=0;
+
+	I2C_SDA_IN();
+	I2C_SCL_H();
+
+	while(1)
+	{
+		val = gpio_pin_get_raw(gpio_ctp, TP_SDA);
+		if(val == 0)
+			break;
+		
+		tempTime++;
+		if(tempTime>250)
+		{
+			I2C_Stop();
+			return 1;
+		}	 
+	}
+
+	I2C_SCL_L();
+	return 0;
+}
+
+//I2C 发送一个字节
+static uint8_t I2C_Write_Byte(uint8_t txd)
+{
+	uint8_t i=0;
+
+	I2C_SDA_OUT();
+	I2C_SCL_L();//拉低时钟开始数据传输
+
+	for(i=0;i<8;i++)
+	{
+		if((txd&0x80)>0) //0x80  1000 0000
+			I2C_SDA_H();
+		else
+			I2C_SDA_L();
+
+		txd<<=1;
+		I2C_SCL_H();
+		I2C_SCL_L();
+	}
+
+	return I2C_Wait_Ack();
+}
+
+//I2C 读取一个字节
+static void I2C_Read_Byte(bool ack, uint8_t *data)
+{
+	uint8_t i=0,receive=0,val=0;
+
+	I2C_SDA_IN();
+	I2C_SCL_L();
+
+	for(i=0;i<8;i++)
+	{
+		I2C_SCL_H();
+		receive<<=1;
+		val = gpio_pin_get_raw(gpio_ctp, TP_SDA);
+		if(val == 1)
+			receive++;
+		I2C_SCL_L();
+	}
+
+	if(ack == false)
+		I2C_NAck();
+	else
+		I2C_Ack();
+
+	*data = receive;
+}
+
+static uint8_t I2C_write_data(uint8_t addr, uint8_t *databuf, uint32_t len)
+{
+	uint32_t i;
+
+	addr = (addr<<1);
+
+	I2C_Start();
+	if(I2C_Write_Byte(addr))
+		goto err;
+
+	for(i=0;i<len;i++)
+	{
+		if(I2C_Write_Byte(databuf[i]))
+			goto err;
+	}
+
+	I2C_Stop();
+	return 0;
+	
+err:
+	return -1;
+}
+
+static uint8_t I2C_read_data(uint8_t addr, uint8_t *databuf, uint32_t len)
+{
+	uint32_t i;
+
+	addr = (addr<<1)|1;
+
+	I2C_Start();
+	if(I2C_Write_Byte(addr))
+		goto err;
+
+	for(i=0;i<len;i++)
+	{
+		if(i == len-1)
+			I2C_Read_Byte(false, &databuf[i]);
+		else
+			I2C_Read_Byte(true, &databuf[i]);
+	}
+	I2C_Stop();
+	return 0;
+	
+err:
+	return -1;
+}
+#endif
+
 static uint8_t init_i2c(void)
 {
+#ifdef TP_GPIO_ACT_I2C
+	I2C_INIT();
+	return true;
+#else
 	i2c_ctp = DEVICE_DT_GET(TP_DEV);
 	if(!i2c_ctp)
 	{
@@ -133,6 +355,7 @@ static uint8_t init_i2c(void)
 		i2c_configure(i2c_ctp, I2C_SPEED_SET(I2C_SPEED_FAST));
 		return 0;
 	}
+#endif
 }
 
 static int32_t platform_write(uint8_t reg, uint8_t *bufp, uint16_t len)
@@ -142,7 +365,11 @@ static int32_t platform_write(uint8_t reg, uint8_t *bufp, uint16_t len)
 
 	data[0] = reg;
 	memcpy(&data[1], bufp, len);
+#ifdef TP_GPIO_ACT_I2C
+	rslt = I2C_write_data(TP_I2C_ADDRESS, data, len+1);
+#else	
 	rslt = i2c_write(i2c_ctp, data, len+1, TP_I2C_ADDRESS);
+#endif
 	return rslt;
 }
 
@@ -150,11 +377,19 @@ static int32_t platform_read(uint8_t reg, uint8_t *bufp, uint16_t len)
 {
 	uint32_t rslt = 0;
 
+#ifdef TP_GPIO_ACT_I2C
+	rslt = I2C_write_data(TP_I2C_ADDRESS, &reg, 1);
+	if(rslt == 0)
+	{
+		rslt = I2C_read_data(TP_I2C_ADDRESS, bufp, len);
+	}
+#else
 	rslt = i2c_write(i2c_ctp, &reg, 1, TP_I2C_ADDRESS);
 	if(rslt == 0)
 	{
 		rslt = i2c_read(i2c_ctp, bufp, len, TP_I2C_ADDRESS);
 	}
+#endif	
 	return rslt;
 }
 
@@ -167,7 +402,11 @@ static int32_t platform_write_word(uint16_t reg, uint8_t *bufp, uint16_t len)
 	data[1] = reg&0xFF;
 
 	memcpy(&data[2], bufp, len);
+#ifdef TP_GPIO_ACT_I2C
+	rslt = I2C_write_data(TP_UPDATE_I2C_ADDRESS, data, len+2);
+#else		
 	rslt = i2c_write(i2c_ctp, data, len+2, TP_UPDATE_I2C_ADDRESS);
+#endif
 	return rslt;
 }
 
@@ -179,12 +418,19 @@ static int32_t platform_read_word(uint16_t reg, uint8_t *bufp, uint16_t len)
 	data[0] = reg>>8;
 	data[1] = reg&0xFF;
 
+#ifdef TP_GPIO_ACT_I2C
+	rslt = I2C_write_data(TP_UPDATE_I2C_ADDRESS, data, 2);
+	if(rslt == 0)
+	{
+		rslt = I2C_read_data(TP_UPDATE_I2C_ADDRESS, bufp, len);
+	}
+#else
 	rslt = i2c_write(i2c_ctp, data, 2, TP_UPDATE_I2C_ADDRESS);
 	if(rslt == 0)
 	{
 		rslt = i2c_read(i2c_ctp, bufp, len, TP_UPDATE_I2C_ADDRESS);
 	}
-
+#endif
 	return rslt;
 }
 
@@ -374,7 +620,6 @@ bool ctp_hynitron_update(void)
 	}
 	return false;
 }
-#endif
 
 void clear_all_touch_event_handle(void)
 {
@@ -664,7 +909,6 @@ void touch_panel_event_handle(TP_EVENT tp_type, uint16_t x_pos, uint16_t y_pos)
 	tp_trige_flag = true;
 }
 
-#if defined(TP_DEBUG)||defined(TP_TEST)
 void CaptouchInterruptHandle(void)
 {
 #ifdef TP_DEBUG
@@ -838,7 +1082,6 @@ void test_tp(void)
 #endif
 	tp_init();
 }
-#endif
 
 void tp_show_infor(void)
 {
@@ -872,28 +1115,15 @@ void tp_show_infor(void)
 		strcpy(tmpbuf, "LONG_PRESS  ");
 		break;
 	}
-
-#if 0
-	LCD_SetFontSize(FONT_SIZE_32);
-	LCD_MeasureString(tmpbuf, &w, &h);
-	LCD_Fill(0, 80, LCD_WIDTH, h, BLACK);
-	LCD_ShowString((LCD_WIDTH-w)/2,80,tmpbuf);	
-	
-	sprintf(tmpbuf, "x:%03d, y:%03d", tp_msg.x_pos, tp_msg.y_pos);
-	LCD_MeasureString(tmpbuf, &w, &h);
-	LCD_ShowString((LCD_WIDTH-w)/2,120,tmpbuf);
-#endif	
 }
 
 void TPMsgProcess(void)
 {
-#if defined(TP_DEBUG)||defined(TP_TEST)
 	if(tp_int_flag)
 	{
 		tp_int_flag = false;
 		tp_interrupt_proc();
 	}
-#endif
 	if(tp_trige_flag)
 	{
 		tp_trige_flag = false;

@@ -30,7 +30,7 @@
 #endif
 #include "logger.h"
 
-//#define PPG_DEBUG
+#define PPG_DEBUG
 
 #define PPG_HR_COUNT_MAX		10
 #define PPG_HR_DEL_MIN_NUM		6
@@ -1904,6 +1904,10 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 	uint8_t *ptr;
 	static uint32_t page_num=0,flash_partial=0;
 
+#ifdef PPG_DEBUG
+	LOGD("len:%d, data:%s", data_len, data);
+#endif
+
 	if(data == NULL || data_len == 0)
 		return;
 
@@ -2005,6 +2009,9 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 		{
 			ptr1 += strlen(COM_PPG_GET_INFOR);
 			strcpy(g_ppg_ver, ptr1);
+		#ifdef PPG_DEBUG
+			LOGD("g_ppg_ver:%s", g_ppg_ver);
+		#endif
 			if((strlen(g_ppg_ver) == 0) || ((strcmp(g_ppg_ver, g_ppg_algo_ver) != 0)&&(strlen(g_ppg_algo_ver) > 0)))
 			{
 			#ifdef FONTMAKER_UNICODE_FONT

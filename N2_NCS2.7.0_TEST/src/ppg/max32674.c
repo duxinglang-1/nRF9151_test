@@ -2023,11 +2023,8 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 				AnimaStop();
 			#endif
 			
-			#ifdef FONTMAKER_UNICODE_FONT
-				LCD_SetFontSize(FONT_SIZE_20);
-			#else	
-				LCD_SetFontSize(FONT_SIZE_16);
-			#endif
+				LCD_SetFontSize(FONT_SIZE_28);
+				LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
 				LCD_SleepOut();
 				
 				infor.w = 200;
@@ -2175,8 +2172,6 @@ void PPG_init(void)
 		g_bpt.systolic = last_health.bpt_rec.bpt.systolic;
 		g_bpt.diastolic = last_health.bpt_rec.bpt.diastolic;
 	}
-
-	CopcsSendData(UART_DATA_PPG, COM_PPG_GET_INFOR, strlen(COM_PPG_GET_INFOR));
 
 #ifdef PPG_DEBUG	
 	LOGD("PPG_init done!");

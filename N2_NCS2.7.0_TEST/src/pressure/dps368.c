@@ -940,11 +940,11 @@ static void init_gpio(void)
 		return;
 
 	//interrupt
-	gpio_pin_configure(gpio_pressure, PRESSURE_EINT, flag);
-	gpio_pin_interrupt_configure(gpio_pressure, PRESSURE_EINT, GPIO_INT_DISABLE);
-	gpio_init_callback(&gpio_cb, PressureInterruptHandle, BIT(PRESSURE_EINT));
-	gpio_add_callback(gpio_pressure, &gpio_cb);
-	gpio_pin_interrupt_configure(gpio_pressure, PRESSURE_EINT, GPIO_INT_ENABLE|GPIO_INT_EDGE_FALLING);
+	//gpio_pin_configure(gpio_pressure, PRESSURE_EINT, flag);
+	//gpio_pin_interrupt_configure(gpio_pressure, PRESSURE_EINT, GPIO_INT_DISABLE);
+	//gpio_init_callback(&gpio_cb, PressureInterruptHandle, BIT(PRESSURE_EINT));
+	//gpio_add_callback(gpio_pressure, &gpio_cb);
+	//gpio_pin_interrupt_configure(gpio_pressure, PRESSURE_EINT, GPIO_INT_ENABLE|GPIO_INT_EDGE_FALLING);
 }
 
 static void init_i2c(void)

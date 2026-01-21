@@ -12,8 +12,8 @@
 #define GPIO_ACT_I2C
 
 #define PRESSURE_EINT		18
-#define PRESSURE_SCL		17
-#define PRESSURE_SDA		16
+#define PRESSURE_SCL		11
+#define PRESSURE_SDA		10
 
 #define DPS368_CHIP_ID		0x10
 #define DPS368_I2C_ADDRESS	0x77

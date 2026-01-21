@@ -959,7 +959,7 @@ bool MAX20353_Init(void)
 
 	//电荷泵及BUCK/BOOST配置
 	//MAX20353_ChargePumpConfig();
-	MAX20353_BuckBoostConfig();	//4.0V 屏背光供电
+	//MAX20353_BuckBoostConfig();	//4.0V 屏背光供电
 
 	//马达驱动
 #ifdef MOTOR_TYPE_ERM

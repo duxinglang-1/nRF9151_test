@@ -30,7 +30,7 @@
 #endif
 #include "logger.h"
 
-#define PPG_DEBUG
+//#define PPG_DEBUG
 
 #define PPG_HR_COUNT_MAX		10
 #define PPG_HR_DEL_MIN_NUM		6
@@ -1313,7 +1313,7 @@ void MenuStopPPG(void)
 void PPGStartCheck(void)
 {
 	bool status;
-	uint8_t com_buff[64] = {0};
+	uint8_t com_buff[CAL_RESULT_SIZE+64] = {0};
 	uint32_t len = 0;
 	
 #ifdef PPG_DEBUG
@@ -1331,7 +1331,6 @@ void PPGStartCheck(void)
 	ppg_power_flag = 1;
 
 	strcpy(com_buff, COM_PPG_SET_OPEN);
-	strcat(com_buff, ",");
 	switch(g_ppg_data)
 	{
 	case PPG_DATA_HR:
@@ -1556,7 +1555,7 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 
 	if(g_ppg_alg_mode == ALG_MODE_BPT)
 	{
-		bpt_algo_data_rx(&bpt, data+(SS_PACKET_COUNTERSIZE+SSMAX86176_MODE1_DATASIZE+SSACCEL_MODE1_DATASIZE+SSWHRM_WSPO2_SUITE_MODE1_DATASIZE));
+		bpt_algo_data_rx(&bpt, &data[SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE + SSWHRM_WSPO2_SUITE_MODE1_DATASIZE]);
 	
 	#ifdef PPG_DEBUG
 		LOGD("bpt_status:%d, bpt_per:%d, bpt_sys:%d, bpt_dia:%d", bpt.status, bpt.perc_comp, bpt.sys_bp, bpt.dia_bp);
@@ -1645,9 +1644,9 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 			#ifdef PPG_DEBUG
 				LOGD("get calbration data success!");
 			#endif
+
+				return;
 			}
-			
-			return;
 		}
 		else if(g_ppg_bpt_status == BPT_STATUS_GET_EST)
 		{
@@ -1670,10 +1669,10 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	{
 	#ifdef CONFIG_FACTORY_TEST_SUPPORT
 		if(IsFTPPGTesting())
-			max86176_data_rx(&max86176, data+SS_PACKET_COUNTERSIZE+SSACCEL_MODE1_DATASIZE);
+			max86176_data_rx(&max86176, &data[SS_PACKET_COUNTERSIZE+SSACCEL_MODE1_DATASIZE]);
 	#endif
 		
-		whrm_wspo2_suite_data_rx_mode1(&sensorhub_out, data+SS_PACKET_COUNTERSIZE+SSMAX86176_MODE1_DATASIZE+SSACCEL_MODE1_DATASIZE);
+		whrm_wspo2_suite_data_rx_mode1(&sensorhub_out, &data[SS_PACKET_COUNTERSIZE+SSMAX86176_MODE1_DATASIZE+SSACCEL_MODE1_DATASIZE]);
 	#ifdef PPG_DEBUG
 		LOGD("skin:%d, hr:%d, spo2:%d", sensorhub_out.scd_contact_state, sensorhub_out.hr, sensorhub_out.spo2);
 	#endif
@@ -1711,7 +1710,7 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	#endif
 		)
 	{
-		sensorhub_get_output_scd_state(&data[1 + SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE], &scd_status);
+		sensorhub_get_output_scd_state(&data[SS_PACKET_COUNTERSIZE + SSMAX86176_MODE1_DATASIZE + SSACCEL_MODE1_DATASIZE], &scd_status);
 	#ifdef PPG_DEBUG
 		LOGD("scd_status:%d", scd_status);
 	#endif
@@ -1883,10 +1882,16 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 
 	if((g_ppg_data == PPG_DATA_BPT)&&(screen_id == SCREEN_ID_BP))
 	{
-		static bool flag = false;
+		static uint8_t count = 0;
+		uint8_t flag;
+
+		if(g_ppg_bpt_status == BPT_STATUS_GET_CAL)
+			flag = 8;
+		else
+			flag = 4;
 		
-		flag = !flag;
-		if(flag || get_bpt_ok_flag)
+		count++;
+		if((count%flag == 0) || get_bpt_ok_flag)
 			ppg_redraw_data_flag = true;
 	}
 	else if((g_ppg_data == PPG_DATA_SPO2)&&(screen_id == SCREEN_ID_SPO2))
@@ -1903,10 +1908,6 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 {
 	uint8_t *ptr;
 	static uint32_t page_num=0,flash_partial=0;
-
-#ifdef PPG_DEBUG
-	LOGD("len:%d, data:%s", data_len, data);
-#endif
 
 	if(data == NULL || data_len == 0)
 		return;
@@ -2012,19 +2013,47 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 		#ifdef PPG_DEBUG
 			LOGD("g_ppg_ver:%s", g_ppg_ver);
 		#endif
+
 			if((strlen(g_ppg_ver) == 0) || ((strcmp(g_ppg_ver, g_ppg_algo_ver) != 0)&&(strlen(g_ppg_algo_ver) > 0)))
 			{
+				uint8_t strtmp[512] = {0};
+				notify_infor infor = {0};
+
+			#ifdef CONFIG_ANIMATION_SUPPORT
+				AnimaStop();
+			#endif
+			
 			#ifdef FONTMAKER_UNICODE_FONT
 				LCD_SetFontSize(FONT_SIZE_20);
 			#else	
 				LCD_SetFontSize(FONT_SIZE_16);
 			#endif
-				NotifyShowStrings((LCD_WIDTH-180)/2, (LCD_HEIGHT-120)/2, 180, 120, NULL, 0, "PPG is upgrading firmware, please wait a few minutes!");
 				LCD_SleepOut();
+				
+				infor.w = 200;
+				infor.h = 120;
+				infor.x = (LCD_WIDTH-infor.w)/2;
+				infor.y = (LCD_HEIGHT-infor.h)/2;
+				infor.align = NOTIFY_ALIGN_CENTER;
+				infor.type = NOTIFY_TYPE_NOTIFY;
+
+				infor.img_count = 0;
+				mmi_asc_to_ucs2((uint8_t*)infor.text, "PPG is upgrading firmware, please wait a few minutes!");
+
+				DisplayPopUp(infor);
+
+				ClearAllKeyHandler();
+			#ifdef CONFIG_TOUCH_SUPPORT
+				clear_all_touch_event_handle();
+			#endif
 
 				CopcsSendData(UART_DATA_PPG, COM_PPG_UPGRADE, strlen(COM_PPG_UPGRADE));
 
 				ppg_is_wait_upgrade = true;
+			}
+			else
+			{
+				ppg_is_wait_upgrade = false;
 			}
 		}
 		else if((ptr1 = strstr(ptr, COM_PPG_UPGRADE_PAGE_NUM)) != NULL)
@@ -2077,17 +2106,16 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 			{
 				uint8_t *ptr=p_data;
 				
-				memset(ptr, 0, part_len+64);
+				memset(ptr, 0, part_len+16);
 				strcpy(ptr, COM_PPG_UPGRADE_FLASH_PAGE);
 				ptr += strlen(COM_PPG_UPGRADE_FLASH_PAGE);
 				SpiFlash_Read(ptr, PPG_ALGO_FW_ADDR+u32_dataIdx+part_index, part_len);
-				
 				CopcsSendData(UART_DATA_PPG, p_data, strlen(COM_PPG_UPGRADE_FLASH_PAGE)+part_len);
 				k_free(p_data);
 			}
-
+			
 			flash_partial++;
-			if(flash_partial == 1+(8000/BL_FLASH_PARTIAL_SIZE))
+			if(flash_partial == (1+(8000/BL_FLASH_PARTIAL_SIZE)))
 			{
 				flash_partial = 0;
 				page_num++;
@@ -2104,6 +2132,8 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 			page_num = 0;
 			flash_partial = 0;
 			ppg_is_wait_upgrade = false;
+
+			ShowBootUpLogoFinished();
 		}
 		else if((ptr1 = strstr(ptr, COM_PPG_UPGRADE_FAIL)) != NULL)
 		{
@@ -2113,6 +2143,8 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 			page_num = 0;
 			flash_partial = 0;
 			ppg_is_wait_upgrade = false;
+
+			ShowBootUpLogoFinished();
 		}
 	}
 }
@@ -2146,10 +2178,6 @@ void PPG_init(void)
 
 	CopcsSendData(UART_DATA_PPG, COM_PPG_GET_INFOR, strlen(COM_PPG_GET_INFOR));
 
-	//Wait to read PPG version information and determine if PPG upgrade needs to be initiated
-	wait_ms(100);
-	while(ppg_is_wait_upgrade){;}
-	
 #ifdef PPG_DEBUG	
 	LOGD("PPG_init done!");
 #endif

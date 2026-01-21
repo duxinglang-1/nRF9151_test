@@ -52,7 +52,7 @@
 #define COPCS_INT_PIN		7
 #define COPCS_WAKE_PIN		4
 
-#define BUF_MAXSIZE	2048
+#define BUF_MAXSIZE	4096
 
 #define PACKET_HEAD	0xAB
 #define PACKET_END	0x88
@@ -145,23 +145,9 @@ K_TIMER_DEFINE(uart_sleep_in_timer, UartSleepInCallBack, NULL);
 
 void MCU_wakeup_copcs(void)
 {
-	if(!gpio_copcs)
-	{
-		gpio_copcs = DEVICE_DT_GET(COPCS_PORT);
-		if(!gpio_copcs)
-		{
-		#ifdef UART_DEBUG
-			LOGD("Cannot bind gpio device");
-		#endif
-			return;
-		}
-
-		gpio_pin_configure(gpio_copcs, COPCS_WAKE_PIN, GPIO_OUTPUT);
-	}
-
-	gpio_pin_set(gpio_copcs, COPCS_WAKE_PIN, 1);
-	k_sleep(K_MSEC(10));
 	gpio_pin_set(gpio_copcs, COPCS_WAKE_PIN, 0);
+	k_sleep(K_MSEC(5));
+	gpio_pin_set(gpio_copcs, COPCS_WAKE_PIN, 1);
 }
 
 static void uart_send_data_handle(struct device *dev, uint8_t *buffer, uint32_t datalen)
@@ -170,10 +156,6 @@ static void uart_send_data_handle(struct device *dev, uint8_t *buffer, uint32_t 
 
 #ifdef CONFIG_PM_DEVICE
 	uart_sleep_out(dev);
-#endif
-
-#ifdef UART_DEBUG
-	LOGD("len:%d, data:%s", datalen, buffer);
 #endif
 
 	uart_fifo_fill(dev, buffer, datalen);
@@ -185,7 +167,7 @@ static void uart_receive_data_handle(struct device *dev, uint8_t *data, uint32_t
 	uint32_t data_len = 0;
 
 #ifdef UART_DEBUG
-	LOGD("uart rece data!");
+	LOGD("len:%d, data:%s", datalen, data);
 #endif
 
 #ifdef CONFIG_PPG_SUPPORT
@@ -245,13 +227,13 @@ void UartSendData(void)
 	#endif
 		uart_send_data_handle(uart_copcs, p_data, data_len);
 		delete_data_from_cache(&uart_send_cache);
-		k_timer_start(&uart_send_data_timer, K_MSEC(50), K_NO_WAIT);
+		k_timer_start(&uart_send_data_timer, K_MSEC(20), K_NO_WAIT);
 	}
 }
 
 void UartSendDataStart(void)
 {
-	k_timer_start(&uart_send_data_timer, K_MSEC(50), K_NO_WAIT);
+	k_timer_start(&uart_send_data_timer, K_MSEC(20), K_NO_WAIT);
 }
 
 bool SendCacheIsEmpty(void)
@@ -270,7 +252,7 @@ void CopcsSendData(UART_DATA_TYPE type, uint8_t *data, uint32_t datalen)
 	ptr = k_malloc(datalen+UART_DATA_HEAD_MAX_LEN);
 	if(ptr != NULL)
 	{
-		memset(ptr, 0x00, datalen);
+		memset(ptr, 0x00, datalen+UART_DATA_HEAD_MAX_LEN);
 		
 		switch(type)
 		{
@@ -320,13 +302,13 @@ void UartReceData(void)
 	{
 		uart_receive_data_handle(uart_copcs, p_data, data_len);
 		delete_data_from_cache(&uart_rece_cache);
-		k_timer_start(&uart_rece_data_timer, K_MSEC(50), K_NO_WAIT);
+		k_timer_start(&uart_rece_data_timer, K_MSEC(20), K_NO_WAIT);
 	}
 }
 
 void ReceDataStart(void)
 {
-	k_timer_start(&uart_rece_data_timer, K_MSEC(50), K_NO_WAIT);
+	k_timer_start(&uart_rece_data_timer, K_MSEC(20), K_NO_WAIT);
 }
 
 bool ReceCacheIsEmpty(void)
@@ -360,7 +342,7 @@ static void uart_cb(struct device *x)
 		while((len = uart_fifo_read(x, &uart_rx_buf[uart_rece_len], BUF_MAXSIZE-uart_rece_len)) > 0)
 		{
 			uart_rece_len += len;
-			k_timer_start(&uart_rece_frame_timer, K_MSEC(20), K_NO_WAIT);
+			k_timer_start(&uart_rece_frame_timer, K_MSEC(10), K_NO_WAIT);
 		}
 	}
 	
@@ -503,7 +485,7 @@ void uart_init(void)
 		return;
 	}	
 	gpio_pin_configure(gpio_copcs, COPCS_WAKE_PIN, GPIO_OUTPUT);
-	gpio_pin_set(gpio_copcs, COPCS_WAKE_PIN, 0);
+	gpio_pin_set(gpio_copcs, COPCS_WAKE_PIN, 1);
 
 #ifdef CONFIG_PM_DEVICE
 	gpio_pin_configure(gpio_copcs, COPCS_INT_PIN, flag);

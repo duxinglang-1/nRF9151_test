@@ -413,9 +413,6 @@ void uart_sleep_in(struct device *dev)
 
 static void copcs_interrupt_event(struct device *interrupt, struct gpio_callback *cb, uint32_t pins)
 {
-#if 1//def UART_DEBUG
-	LOGD("begin");
-#endif
 	uart_wake_flag = true;
 }
 

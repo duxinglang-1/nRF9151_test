@@ -558,6 +558,9 @@ void imu_sensor_init(void)
 static bool sensor_init(void)
 {
 	lsm6dso_device_id_get(&imu_dev_ctx, &whoamI);
+#ifdef IMU_DEBUG
+	LOGD("id:0x%x", whoamI);
+#endif
 	if(whoamI != LSM6DSO_ID)
 		return false;
 
@@ -823,7 +826,7 @@ void IMUMsgProcess(void)
 		fall_result = false;
 		//LOGD("Checking for activity");
 
-		#if 0 // Activity detection
+	#if 0 // Activity detection
 		k_timer_start(&imu_activity_timer, K_SECONDS(3), K_NO_WAIT);
 
 		while(1)
@@ -843,13 +846,13 @@ void IMUMsgProcess(void)
 			}
 		}
 		#else
-		#if 1 // SCC detections
+	#if 1 // SCC detections
 		StartSCC();
 		k_timer_start(&fall_scc_timer, K_SECONDS(9), K_NO_WAIT);
-		#else
+	#else
 		FallTrigger();
-		#endif
-		#endif
+	#endif
+	#endif
 	}
 	
 	if(SCC_check_ok)

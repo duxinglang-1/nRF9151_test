@@ -172,20 +172,23 @@ void WriteOneDot(unsigned int color)
 ////////////////////////////////////////////////²âÊÔº¯Êý//////////////////////////////////////////
 void BlockWrite(unsigned int x,unsigned int y,unsigned int w,unsigned int h) //reentrant
 {
-	x += 0;
-	y += 0;
+	//The start postion must can be divisible by 2.
+	if(x%2 != 0)
+		x += 1;
+	if(y%2 != 0)
+		y += 1;
 
-	WriteComm(0x2A);             
-	WriteData(x>>8);             
-	WriteData(x);             
-	WriteData((x+w-1)>>8);             
-	WriteData((x+w-1));             
+	WriteComm(0x2A);
+	WriteData(x>>8);
+	WriteData(x);
+	WriteData((x+w-1)>>8);
+	WriteData((x+w-1));
 
-	WriteComm(0x2B);             
-	WriteData(y>>8);             
-	WriteData(y);             
-	WriteData((y+h-1)>>8);//	WriteData((Yend+1)>>8);             
-	WriteData((y+h-1));//	WriteData(Yend+1);   	
+	WriteComm(0x2B);
+	WriteData(y>>8);
+	WriteData(y);
+	WriteData((y+h-1)>>8);
+	WriteData((y+h-1));
 
 	WriteComm(0x2c);
 }

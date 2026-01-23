@@ -418,9 +418,6 @@ static void copcs_interrupt_event(struct device *interrupt, struct gpio_callback
 
 static void UartSleepInCallBack(struct k_timer *timer_id)
 {
-#ifdef UART_DEBUG
-	LOGD("begin");
-#endif
 	uart_sleep_flag = true;
 }
 #endif
@@ -542,10 +539,6 @@ void UartSetBaudRate(uint32_t baudrate)
 
 void test_uart_ble(void)
 {
-#ifdef UART_DEBUG
-	LOGD("begin");
-#endif
-
 	while(1)
 	{
 		CopcsSendData(UART_DATA_BLE, "Hello World!\n", strlen("Hello World!\n"));

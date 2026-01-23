@@ -78,8 +78,8 @@ void test_show_image(void)
 	//LCD_get_pic_size(peppa_pig_160X160, &w, &h);
 	//LCD_dis_pic_rotate(0,200,peppa_pig_160X160,270);
 	//LCD_dis_pic(0, 0, peppa_pig_160X160);
-	LCD_get_pic_size_from_flash(IMG_STEP_UNIT_CN_ICON_ADDR, &w, &h);
-	LCD_dis_pic_from_flash((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_STEP_UNIT_CN_ICON_ADDR);
+	LCD_get_pic_size_from_flash(IMG_PWROFF_BUTTON_ADDR, &w, &h);
+	LCD_dis_pic_from_flash((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_PWROFF_BUTTON_ADDR);
 	//LCD_dis_pic_rotate_from_flash((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_ANALOG_CLOCK_HAND_HOUR_ADDR, 270);
 	//LCD_dis_pic_angle_from_flash(0, 0, IMG_ANALOG_CLOCK_HAND_SEC_ADDR, 360);
 	while(0)
@@ -231,7 +231,7 @@ void test_show_string(void)
 	LCD_SetFontSize(FONT_SIZE_48);					//设置字体大小
 #elif 0//defined(FONT_32)
 	LCD_SetFontSize(FONT_SIZE_32);					//设置字体大小	
-#elif 0//defined(FONT_28)
+#elif defined(FONT_28)
 	LCD_SetFontSize(FONT_SIZE_28);					//设置字体大小	
 #elif defined(FONT_20)
 	LCD_SetFontSize(FONT_SIZE_20);		
@@ -241,14 +241,15 @@ void test_show_string(void)
 	LCD_SetFontSize(FONT_SIZE_16);					//设置字体大小
 #endif
 	//LCD_MeasureUniString(test_buf, &w, &h);
-	LCD_MeasureUniStr(STR_ID_SENSOR_IS_RUNNING, &w, &h);
+	mmi_asc_to_ucs2(tmpbuf, "PPG is upgrading firmware, please wait a few minutes!");
+	LCD_MeasureUniString((uint16_t*)tmpbuf, &w, &h);
 	if(g_language_r2l)
 		x = (w >= LCD_WIDTH)? LCD_WIDTH-1 : (LCD_WIDTH+w)/2;
 	else
 		x = (w >= LCD_WIDTH)? 0 : (LCD_WIDTH-w)/2;
 	y = (h >= LCD_HEIGHT)? 0 : (LCD_HEIGHT-h)/2;
-	//LCD_ShowUniString(x,y,test_buf);
-	LCD_SmartShowUniStr(x, y, STR_ID_SENSOR_IS_RUNNING);
+	LCD_ShowUniString(x,y,tmpbuf);
+	//LCD_SmartShowUniStr(x, y, STR_ID_SENSOR_IS_RUNNING);
 #else
 
 	strcpy(enbuf, "August Shenzhen Digital Ltd");
@@ -279,6 +280,21 @@ void test_show_string(void)
 	LCD_ShowString(x,y,jpbuf);
 
 #endif
+}
+
+void test_show_lines(void)
+{
+	uint8_t i;
+
+	for(i=0;i<8;i++)
+	{
+		LCD_DrawLine(0, 20+60*i, LCD_WIDTH-1, 20+60*i);
+	}
+
+	for(i=0;i<8;i++)
+	{
+		LCD_DrawLine(20+60*i, 0, 20+60*i, LCD_HEIGHT-1);
+	}
 }
 
 void test_notify(void)
@@ -364,10 +380,10 @@ static void modem_init(void)
 
 void system_init(void)
 {
-	k_sleep(K_MSEC(500));//xb test 2022-03-11 启动时候延迟0.5S,等待其他外设完全启动
+	uart_init();
+	pmu_init();
 
 	modem_init();
-
 #ifdef CONFIG_FOTA_DOWNLOAD
 	fota_init();
 #endif
@@ -377,7 +393,6 @@ void system_init(void)
 #ifdef CONFIG_IMU_SUPPORT
 	init_imu_int1();//xb add 2022-05-27
 #endif
-	pmu_init();
 	key_init();
 #ifdef CONFIG_TOUCH_SUPPORT
 	tp_init();
@@ -387,7 +402,6 @@ void system_init(void)
 	
 	ShowBootUpLogo();
 	
-	uart_init();
 #ifdef CONFIG_AUDIO_SUPPORT	
 	audio_init();
 #endif
@@ -468,6 +482,7 @@ int main(void)
 //	test_show_image();
 //	test_show_color();
 //	test_show_stripe();
+//	test_show_lines();
 //	test_nvs();
 //	test_flash();
 //	test_uart_ble();

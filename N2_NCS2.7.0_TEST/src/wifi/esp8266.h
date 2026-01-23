@@ -24,24 +24,24 @@
 #define COM_WIFI_RECE_DATA			"RECE_DATA:"
 
 #define WIFI_NODE_MAX	5
-#define WIFI_DATA_HEAD			"+CWLAP:"
-#define WIFI_DATA_RSSI_BEGIN	"("
-#define WIFI_DATA_RSSI_END		","
-#define WIFI_DATA_MAC_BEGIN		"\""
-#define WIFI_DATA_MAC_END		"\")"
-#define WIFI_DATA_BRACKET_BEIN	"<"
-#define WIFI_DATA_BRACKET_END	">"
-#define WIFI_DATA_SEP_COLON		":"
-#define WIFI_SLEEP_CMD			"AT+GSLP=0\r\n"
-#define WIFI_SLEEP_REPLY		"AT+GSLP=0\r\n\r\nOK"
-#define WIFI_SET_MODE			"AT+CWMODE=1\r\n"		//设置工作模式 1:station模式 2:AP模式 3:兼容AP+station模式
-#define WIFI_SET_AP_SCAN_OPT	"AT+CWLAPOPT=1,12\r\n"	//设置AT+CWLAP信号的排序方式：按RSSI排序，只显示信号强度和MAC模式
-#define WIFI_SET_AP_SCAN_START	"AT+CWLAP\r\n"
-#define WIFI_GET_VER			"AT+GMR\r\n"
-#define WIFI_GET_MAC_CMD		"AT+CIFSR\r\n"
-#define WIFI_GET_MAC_REPLY		"+CIFSR:STAMAC"
-#define WIFI_DATA_VER_BIN		"Bin version"
-#define WIFI_DATA_END			"\r\n"
+#define WIFI_SCAN_DATA_HEAD			"+CWLAP:"
+#define WIFI_SCAN_DATA_RSSI_BEGIN	"("
+#define WIFI_SCAN_DATA_RSSI_END		","
+#define WIFI_SCAN_DATA_MAC_BEGIN		"\""
+#define WIFI_SCAN_DATA_MAC_END		"\")"
+#define WIFI_SCAN_BRACKET_BEIN		"<"
+#define WIFI_SCAN_DATA_BRACKET_END	">"
+#define WIFI_SCAN_DATA_SEP_COLON	":"
+#define WIFI_SLEEP_CMD				"AT+GSLP=0\r\n"
+#define WIFI_SLEEP_REPLY			"AT+GSLP=0\r\n\r\nOK"
+#define WIFI_SET_MODE				"AT+CWMODE=1\r\n"		//设置工作模式 1:station模式 2:AP模式 3:兼容AP+station模式
+#define WIFI_SET_AP_SCAN_OPT		"AT+CWLAPOPT=1,12\r\n"	//设置AT+CWLAP信号的排序方式：按RSSI排序，只显示信号强度和MAC模式
+#define WIFI_SET_AP_SCAN_START		"AT+CWLAP\r\n"
+#define WIFI_GET_VER				"AT+GMR\r\n"
+#define WIFI_GET_MAC_CMD			"AT+CIFSR\r\n"
+#define WIFI_GET_MAC_REPLY			"+CIFSR:STAMAC"
+#define WIFI_GET_DATA_VER_BIN		"Bin version"
+#define WIFI_GET_DATA_END			"\r\n"
 
 #define WIFI_LOCAL_MIN_COUNT	3
 

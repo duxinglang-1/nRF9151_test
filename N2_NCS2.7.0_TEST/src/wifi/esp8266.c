@@ -289,7 +289,7 @@ void wifi_turn_on_and_scanning(void)
 	
 	wifi_is_on = true;
 
-	CopcsSendData(UART_DATA_WIFI, COM_WIFI_SET_OPEN, strlen(COM_WIFI_SET_OPEN));
+	CopcsSendData(UART_DATA_WIFI, COM_WIFI_GET_SCAN_AP, strlen(COM_WIFI_GET_SCAN_AP));
 }
 
 void wifi_turn_off_success(void)
@@ -314,6 +314,9 @@ void wifi_turn_off(void)
 	wifi_is_on = false;
 
 	CopcsSendData(UART_DATA_WIFI, COM_WIFI_SET_CLOSE, strlen(COM_WIFI_SET_CLOSE));
+#ifdef WIFI_DEBUG
+	LOGD("end");
+#endif	
 }
 
 void wifi_rescanning(void)
@@ -369,7 +372,7 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 	uint8_t count = 0;
 	uint8_t *ptr,tmpbuf[256] = {0};
 	bool flag = false;
-	
+
 	if(data == NULL || data_len == 0)
 		return;
 
@@ -392,7 +395,7 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 		else if((ptr1 = strstr(ptr, COM_WIFI_GET_SCAN_AP)) != NULL)
 		{
 			ptr = ptr1 + strlen(COM_WIFI_GET_SCAN_AP);
-			
+
 			while(1)
 			{
 				uint8_t len;
@@ -400,7 +403,7 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 				uint8_t str_mac[32]={0};
 
 				//head
-				ptr1 = strstr(ptr,WIFI_DATA_HEAD);
+				ptr1 = strstr(ptr,WIFI_SCAN_DATA_HEAD);
 				if(ptr1 == NULL)
 				{
 					ptr2 = ptr;
@@ -411,15 +414,15 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 				flag = true;
 				
 				//rssi
-				ptr += strlen(WIFI_DATA_HEAD);
-				ptr1 = strstr(ptr,WIFI_DATA_RSSI_BEGIN);         //取字符串中的,之后的字符
+				ptr += strlen(WIFI_SCAN_DATA_HEAD);
+				ptr1 = strstr(ptr,WIFI_SCAN_DATA_RSSI_BEGIN);         //取字符串中的,之后的字符
 				if(ptr1 == NULL)
 				{
 					ptr2 = ptr;
 					goto loop;
 				}
 				
-				ptr2 = strstr(ptr1+1,WIFI_DATA_RSSI_END);
+				ptr2 = strstr(ptr1+1,WIFI_SCAN_DATA_RSSI_END);
 				if(ptr2 == NULL)
 				{
 					ptr2 = ptr1+1;
@@ -435,13 +438,13 @@ void UartWifiEventHandle(uint8_t *data, uint32_t data_len)
 				memcpy(str_rssi, ptr1+1, len);
 
 				//MAC
-				ptr1 = strstr(ptr2,WIFI_DATA_MAC_BEGIN);
+				ptr1 = strstr(ptr2,WIFI_SCAN_DATA_MAC_BEGIN);
 				if(ptr1 == NULL)
 				{
 					goto loop;
 				}
 
-				ptr2 = strstr(ptr1+1,WIFI_DATA_MAC_END);
+				ptr2 = strstr(ptr1+1,WIFI_SCAN_DATA_MAC_END);
 				if(ptr2 == NULL)
 				{
 					ptr2 = ptr1+1;

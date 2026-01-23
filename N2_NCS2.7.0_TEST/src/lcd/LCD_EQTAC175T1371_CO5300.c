@@ -175,8 +175,8 @@ void BlockWrite(unsigned int x,unsigned int y,unsigned int w,unsigned int h) //r
 	//The start postion must can be divisible by 2.
 	if(x%2 != 0)
 		x += 1;
-	if(y%2 != 0)
-		y += 1;
+	//if(y%2 != 0)
+	//	y += 1;
 
 	WriteComm(0x2A);
 	WriteData(x>>8);

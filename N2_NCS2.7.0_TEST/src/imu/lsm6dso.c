@@ -558,9 +558,6 @@ void imu_sensor_init(void)
 static bool sensor_init(void)
 {
 	lsm6dso_device_id_get(&imu_dev_ctx, &whoamI);
-#ifdef IMU_DEBUG
-	LOGD("id:0x%x", whoamI);
-#endif
 	if(whoamI != LSM6DSO_ID)
 		return false;
 

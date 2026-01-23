@@ -19,7 +19,7 @@
 //播放120报警声
 void audio_play_alarm(void)
 {
-	uint8_t sound_id = 3;
+	uint8_t sound_id = 0x33;
 	uint8_t buffer[64] = {0};
 	uint32_t len;
 	
@@ -32,7 +32,7 @@ void audio_play_alarm(void)
 //播放中文语音提示
 void audio_play_chn_voice(void)
 {
-	uint8_t sound_id = 1;
+	uint8_t sound_id = 0x31;
 	uint8_t buffer[64] = {0};
 	uint32_t len;
 	
@@ -45,7 +45,7 @@ void audio_play_chn_voice(void)
 //播放英文语音提示
 void audio_play_en_voice(void)
 {
-	uint8_t sound_id = 2;
+	uint8_t sound_id = 0x32;
 	uint8_t buffer[64] = {0};
 	uint32_t len;
 	
@@ -70,9 +70,11 @@ void SOSStopAlarm(void)
 //SOS播放报警
 void SOSPlayAlarm(void)
 {
-	uint8_t sound_id = 3;
+	uint8_t sound_id = 0x30;
 	uint8_t buffer[64] = {0};
 	uint32_t len;
+
+	LOGD("begin");
 	
 	strcpy(buffer, COM_AUDIO_PLAY);
 	len = strlen(COM_AUDIO_PLAY);

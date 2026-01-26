@@ -55,6 +55,12 @@ void audio_play_en_voice(void)
 	CopcsSendData(UART_DATA_AUIOD, buffer, len+sizeof(sound_id));
 }
 
+//Æô¶¯/Í£Ö¹Ñ­»·²¥·Å
+void audio_loop(void)
+{
+	CopcsSendData(UART_DATA_AUIOD, CPM_AUDIO_REPEAT, strlen(CPM_AUDIO_REPEAT));
+}
+
 //Í£Ö¹²¥·Å
 void audio_stop(void)
 {
@@ -131,6 +137,9 @@ void UartAudioEventHandle(uint8_t *data, uint32_t data_len)
 		{
 		}
 		else if((ptr1 = strstr(ptr, COM_AUDIO_PLAY)) != NULL)
+		{
+		}
+		else if((ptr1 = strstr(ptr, COM_AUDIO_COMPLETED)) != NULL)
 		{
 		}
 		else if((ptr1 = strstr(ptr, COM_AUDIO_STOP)) != NULL)

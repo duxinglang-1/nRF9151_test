@@ -431,8 +431,8 @@ void system_init(void)
 #endif
 	LogInit();
 
-	//NB_init(&nb_work_q);
-	//GPS_init(&gps_work_q);
+	NB_init(&nb_work_q);
+	GPS_init(&gps_work_q);
 }
 
 void work_init(void)

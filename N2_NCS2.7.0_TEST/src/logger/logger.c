@@ -15,7 +15,7 @@
 #include "transfer_cache.h"
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(N2, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(N2_9151, CONFIG_LOG_DEFAULT_LEVEL);
 
 typedef struct
 {
@@ -79,9 +79,6 @@ void LOGDD(const char *fun_name, const char *fmt, ...)
 
 	if(n > 0)
 	{
-		*(buf + n) = '\n';
-		n++;
-		
 		LOG_INF("%s", buf);
 	}
 #endif	

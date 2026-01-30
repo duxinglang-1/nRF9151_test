@@ -3031,6 +3031,20 @@ static void nb_test(struct k_work *work)
 
 		k_timer_start(&get_nw_rsrp_timer, K_MSEC(1000), K_NO_WAIT);
 	}
+	else
+	{
+	#ifdef NB_DEBUG
+		LOGD("LTE Link fail!");
+	#endif
+
+		strcpy(nb_test_info, "LTE Link fail!");
+	#ifdef NB_SIGNAL_TEST
+		TestNBUpdateINfor();
+	#endif
+	#ifdef CONFIG_FACTORY_TEST_SUPPORT	
+		FTNetStatusUpdate(0);
+	#endif	
+	}
 }
 
 static void nb_link(struct k_work *work)

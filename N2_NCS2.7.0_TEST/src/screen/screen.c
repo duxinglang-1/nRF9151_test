@@ -385,14 +385,14 @@ void IdleShowSystemDate(void)
 #endif
 	uint32_t img_24_num[10] = {IMG_FONT_24_NUM_0_ADDR,IMG_FONT_24_NUM_1_ADDR,IMG_FONT_24_NUM_2_ADDR,IMG_FONT_24_NUM_3_ADDR,IMG_FONT_24_NUM_4_ADDR,
 							 IMG_FONT_24_NUM_5_ADDR,IMG_FONT_24_NUM_6_ADDR,IMG_FONT_24_NUM_7_ADDR,IMG_FONT_24_NUM_8_ADDR,IMG_FONT_24_NUM_9_ADDR};
-	uint32_t img_20_num[10] = {IMG_FONT_20_NUM_0_ADDR,IMG_FONT_20_NUM_1_ADDR,IMG_FONT_20_NUM_2_ADDR,IMG_FONT_20_NUM_3_ADDR,IMG_FONT_20_NUM_4_ADDR,
-							 IMG_FONT_20_NUM_5_ADDR,IMG_FONT_20_NUM_6_ADDR,IMG_FONT_20_NUM_7_ADDR,IMG_FONT_20_NUM_8_ADDR,IMG_FONT_20_NUM_9_ADDR};
+	uint32_t img_42_num[10] = {IMG_FONT_42_NUM_0_ADDR,IMG_FONT_42_NUM_1_ADDR,IMG_FONT_42_NUM_2_ADDR,IMG_FONT_42_NUM_3_ADDR,IMG_FONT_42_NUM_4_ADDR,
+							 IMG_FONT_42_NUM_5_ADDR,IMG_FONT_42_NUM_6_ADDR,IMG_FONT_42_NUM_7_ADDR,IMG_FONT_42_NUM_8_ADDR,IMG_FONT_42_NUM_9_ADDR};
 
 	POINT_COLOR=WHITE;
 	BACK_COLOR=BLACK;
 
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_28);
+	LCD_SetFontSize(FONT_SIZE_52);
 
 	switch(global_settings.language)
 	{
@@ -463,8 +463,8 @@ void IdleShowSystemDate(void)
 	
 	default:
 		x = IDLE_DATE_DAY_EN_X;
-		LCD_ShowImg_From_Flash(x+0*IDLE_DATE_NUM_EN_W, IDLE_DATE_DAY_EN_Y+4, img_20_num[date_time.day/10]);
-		LCD_ShowImg_From_Flash(x+1*IDLE_DATE_NUM_EN_W, IDLE_DATE_DAY_EN_Y+4, img_20_num[date_time.day%10]);
+		LCD_ShowImg_From_Flash(x+0*IDLE_DATE_NUM_EN_W, IDLE_DATE_DAY_EN_Y+4, img_42_num[date_time.day/10]);
+		LCD_ShowImg_From_Flash(x+1*IDLE_DATE_NUM_EN_W, IDLE_DATE_DAY_EN_Y+4, img_42_num[date_time.day%10]);
 
 		LCD_MeasureUniStr(str_mon[date_time.month-1], &str_w, &str_h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -558,7 +558,7 @@ void IdleShowSystemWeek(void)
 	BACK_COLOR=BLACK;
 
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_28);
+	LCD_SetFontSize(FONT_SIZE_52);
 
 	switch(global_settings.language)
 	{
@@ -6631,15 +6631,15 @@ void TestWifiUpdateInfor(void)
 {
 	uint8_t tmpbuf[512] = {0};
 	
-	LCD_Fill((LCD_WIDTH-180)/2, 50, 180, 180, BLACK);
+	LCD_Fill((LCD_WIDTH-300)/2, 80, 300, 300, BLACK);
 
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
+	LCD_SetFontSize(FONT_SIZE_36);
 	mmi_asc_to_ucs2(tmpbuf, wifi_test_info);
-	LCD_ShowUniStringInRect((LCD_WIDTH-180)/2, 50, 180, 180, (uint16_t*)tmpbuf);
+	LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)tmpbuf);
 #else	
 	LCD_SetFontSize(FONT_SIZE_16);
-	LCD_ShowStringInRect((LCD_WIDTH-180)/2, 50, 180, 180, wifi_test_info);
+	LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, wifi_test_info);
 #endif
 }
 
@@ -6651,18 +6651,18 @@ void TestWifiShowInfor(void)
 	LCD_Clear(BLACK);
 	
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
+	LCD_SetFontSize(FONT_SIZE_36);
 	mmi_asc_to_ucs2(strbuf, "WIFI TESTING");
 	LCD_MeasureUniString((uint16_t*)strbuf, &w, &h);
 	LCD_ShowUniString((LCD_WIDTH-w)/2, 20, (uint16_t*)strbuf);
 	mmi_asc_to_ucs2(strbuf, "Wifi Starting...");
-	LCD_ShowUniStringInRect((LCD_WIDTH-180)/2, 50, 180, 180, (uint16_t*)strbuf);
+	LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)strbuf);
 #else	
 	LCD_SetFontSize(FONT_SIZE_16);
 	strcpy(strbuf, "WIFI TESTING");
 	LCD_MeasureString(strbuf, &w, &h);
 	LCD_ShowString((LCD_WIDTH-w)/2, 20, strbuf);
-	LCD_ShowStringInRect((LCD_WIDTH-180)/2, 50, 180, 180, "Wifi Starting...");
+	LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, "Wifi Starting...");
 #endif
 }
 
@@ -6732,15 +6732,15 @@ void TestGPSUpdateInfor(void)
 {
 	uint8_t tmpbuf[512] = {0};
 	
-	LCD_Fill((LCD_WIDTH-194)/2, 50, 194, 160, BLACK);
+	LCD_Fill((LCD_WIDTH-300)/2, 80, 300, 300, BLACK);
 
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
+	LCD_SetFontSize(FONT_SIZE_36);
 	mmi_asc_to_ucs2(tmpbuf, gps_test_info);
-	LCD_ShowUniStringInRect((LCD_WIDTH-194)/2, 50, 194, 160, (uint16_t*)tmpbuf);
+	LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)tmpbuf);
 #else	
 	LCD_SetFontSize(FONT_SIZE_16);
-	LCD_ShowStringInRect((LCD_WIDTH-194)/2, 50, 194, 160, gps_test_info);
+	LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, gps_test_info);
 #endif
 }
 
@@ -6752,18 +6752,18 @@ void TestGPSShowInfor(void)
 	LCD_Clear(BLACK);
 	
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
+	LCD_SetFontSize(FONT_SIZE_36);
 	mmi_asc_to_ucs2(strbuf, "GPS TESTING");
 	LCD_MeasureUniString((uint16_t*)strbuf, &w, &h);
 	LCD_ShowUniString((LCD_WIDTH-w)/2, 20, (uint16_t*)strbuf);
 	mmi_asc_to_ucs2(strbuf, "GPS Starting...");
-	LCD_ShowUniStringInRect((LCD_WIDTH-192)/2, 50, 192, 160, (uint16_t*)strbuf);
+	LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)strbuf);
 #else	
 	LCD_SetFontSize(FONT_SIZE_16);
 	strcpy(strbuf, "GPS TESTING");
 	LCD_MeasureString(strbuf, &w, &h);
 	LCD_ShowString((LCD_WIDTH-w)/2, 20, strbuf);
-	LCD_ShowStringInRect((LCD_WIDTH-192)/2, 50, 192, 160, "GPS Starting...");
+	LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, "GPS Starting...");
 #endif
 }
 
@@ -6846,12 +6846,12 @@ void TestNBUpdateINfor(void)
 
 	if(screen_id == SCREEN_ID_NB_TEST)
 	{
-		LCD_Fill(30, 50, 190, 160, BLACK);
+		LCD_Fill((LCD_WIDTH-300)/2, 80, 300, 300, BLACK);
 	#ifdef FONTMAKER_UNICODE_FONT
 		mmi_asc_to_ucs2(tmpbuf, nb_test_info);
-		LCD_ShowUniStringInRect(30, 50, 180, 160, (uint16_t*)tmpbuf);	
+		LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)tmpbuf);	
 	#else
-		LCD_ShowStringInRect(30, 50, 180, 160, nb_test_info);
+		LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, nb_test_info);
 	#endif
 	}
 }
@@ -6863,18 +6863,18 @@ void TestNBShowInfor(void)
 	
 	LCD_Clear(BLACK);
 #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
+	LCD_SetFontSize(FONT_SIZE_36);
 	mmi_asc_to_ucs2(strbuf, "NB-IoT TESTING");
 	LCD_MeasureUniString((uint16_t*)strbuf, &w, &h);
 	LCD_ShowUniString((LCD_WIDTH-w)/2, 20, (uint16_t*)strbuf);
 	mmi_asc_to_ucs2(strbuf, nb_test_info);
-	LCD_ShowUniStringInRect(30, 50, 180, 160, (uint16_t*)strbuf);	
+	LCD_ShowUniStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, (uint16_t*)strbuf);	
 #else	
 	LCD_SetFontSize(FONT_SIZE_16);
 	strcpy(strbuf, "NB-IoT TESTING");
 	LCD_MeasureString(strbuf, &w, &h);
 	LCD_ShowString((LCD_WIDTH-w)/2, 20, strbuf);
-	LCD_ShowStringInRect(30, 50, 180, 160, nb_test_info);
+	LCD_ShowStringInRect((LCD_WIDTH-300)/2, 80, 300, 300, nb_test_info);
 #endif
 }
 

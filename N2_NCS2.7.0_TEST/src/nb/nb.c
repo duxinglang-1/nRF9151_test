@@ -2151,7 +2151,7 @@ void receiveToAtWithNb(void)
 			uint8_t cvalue[5] = {0};
 			itoa(dbmint, cvalue, 10);
 			uint8_t lastValue[30] = {0};
-			strcpy(lastValue, "\nRXpower: -");
+			strcpy(lastValue, "RXpower: -");
 			strcat(lastValue, cvalue);
 			strcat(lastValue, " dbm");
 			sprintf(nb_test_info, lastValue);
@@ -3189,7 +3189,7 @@ void NBMsgProcess(void)
 	#endif
 	
 		if(1
-			#ifdef CONFIG_FACTORY_TEST_SUPPORT	
+			#if defined(CONFIG_FACTORY_TEST_SUPPORT)&&!defined(NB_SIGNAL_TEST)
 				&& FactorySmtTestActived()
 			#endif
 			)

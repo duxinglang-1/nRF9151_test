@@ -350,8 +350,6 @@ void LCD_SleepIn(void)
 	gpio_pin_set(gpio_lcd, EN, 0);
 	gpio_pin_set(gpio_lcd, VBAT, 0);
 
-	LOGD("lcd sleep in!");
-
 	lcd_is_sleeping = true;
 }
 
@@ -396,8 +394,6 @@ void LCD_SleepOut(void)
 	Delay(120);     
 	WriteComm(0x29);//Display on
 	
-	LOGD("lcd sleep out!");
-
 	lcd_is_sleeping = false;
 }
 

@@ -242,15 +242,24 @@ void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 //(x1,y1),(x2,y2):矩形的对角坐标
 void LCD_DrawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
+	uint8_t dot_w;
+	
 #ifdef LCD_TYPE_SPI
-	BlockWrite(x,y,w,1);
-	DispColor(w, POINT_COLOR);
-	BlockWrite(x,y,1,h);
-	DispColor(h, POINT_COLOR);
-	BlockWrite(x,y+h,w,1);
-	DispColor(w, POINT_COLOR);
-	BlockWrite(x+w,y,1,h);
-	DispColor(h, POINT_COLOR);	
+ #ifdef LCD_EQTAC175T1371_CO5300
+	dot_w = 2;
+ #else
+	dot_w = 1;
+ #endif
+ 
+	BlockWrite(x,y,w,dot_w);
+	DispColor(w*dot_w, POINT_COLOR);
+	BlockWrite(x,y,dot_w,h);
+	DispColor(h*dot_w, POINT_COLOR);
+	BlockWrite(x,y+h,w,dot_w);
+	DispColor(w*dot_w, POINT_COLOR);
+	BlockWrite(x+w,y,dot_w,h);
+	DispColor(h*dot_w, POINT_COLOR);	
+
 #else
 	LCD_DrawLine(x,y,x+w,y);
 	LCD_DrawLine(x,y,x,y+h);
@@ -1139,6 +1148,13 @@ void LCD_get_pic_size_from_flash(uint32_t pic_addr, uint16_t *width, uint16_t *h
 	uint8_t databuf[6] = {0};
 
 	SpiFlash_Read(databuf, pic_addr, 6);
+	if(databuf[2] == 0xff && databuf[3] == 0xff && databuf[4] == 0xff && databuf[5] == 0xff)
+	{
+		*width = 0;
+		*height = 0;
+		return;
+	}
+	
 	*width = 256*databuf[2]+databuf[3]; 			//获取图片宽度
 	*height = 256*databuf[4]+databuf[5];			//获取图片高度
 }
@@ -1155,7 +1171,9 @@ void LCD_dis_pic_from_flash(uint16_t x, uint16_t y, uint32_t pic_addr)
 	uint32_t datelen,showlen=0,readlen=LCD_DATA_LEN;
 	
 	SpiFlash_Read(databuf, pic_addr, 8);
-
+	if(databuf[2] == 0xff && databuf[3] == 0xff && databuf[4] == 0xff && databuf[5] == 0xff)
+		return;
+	
 	w=256*databuf[2]+databuf[3]; 			//获取图片宽度
 	h=256*databuf[4]+databuf[5];			//获取图片高度
 
@@ -1227,9 +1245,11 @@ void LCD_dis_pic_trans_from_flash(uint16_t x, uint16_t y, uint32_t pic_addr, uin
 	uint32_t datelen,showlen=0,readlen=LCD_DATA_LEN;
 	
 	SpiFlash_Read(databuf, pic_addr, 8);
+	if(databuf[2] == 0xff && databuf[3] == 0xff && databuf[4] == 0xff && databuf[5] == 0xff)
+		return;
 
-	w=256*databuf[2]+databuf[3]; 			//获取图片宽度
-	h=256*databuf[4]+databuf[5];			//获取图片高度
+	w = 256*databuf[2]+databuf[3]; 			//获取图片宽度
+	h = 256*databuf[4]+databuf[5];			//获取图片高度
 
 	pic_addr += 8;
 
@@ -1300,9 +1320,11 @@ void LCD_dis_pic_rotate_from_flash(uint16_t x, uint16_t y, uint32_t pic_addr, un
 	uint32_t offset,datelen,showlen=0,readlen=LCD_DATA_LEN;
 	
 	SpiFlash_Read(databuf, pic_addr, 8);
+	if(databuf[2] == 0xff && databuf[3] == 0xff && databuf[4] == 0xff && databuf[5] == 0xff)
+		return;
 
-	w=256*databuf[2]+databuf[3]; 			//获取图片宽度
-	h=256*databuf[4]+databuf[5];			//获取图片高度
+	w = 256*databuf[2]+databuf[3]; 			//获取图片宽度
+	h = 256*databuf[4]+databuf[5];			//获取图片高度
 
 	pic_addr += 8;
 
@@ -1532,6 +1554,8 @@ void LCD_dis_pic_angle_from_flash(uint16_t x, uint16_t y, uint32_t pic_addr, uns
 	uint32_t datelen,showlen=0,readlen=LCD_DATA_LEN;
 	
 	SpiFlash_Read(databuf, pic_addr, 8);
+	if(databuf[2] == 0xff && databuf[3] == 0xff && databuf[4] == 0xff && databuf[5] == 0xff)
+		return;
 
 	w = 256*databuf[2]+databuf[3]; 			//获取图片宽度
 	h = 256*databuf[4]+databuf[5];			//获取图片高度

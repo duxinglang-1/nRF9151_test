@@ -1,8 +1,11 @@
 /****************************************Copyright (c)************************************************
 ** File name:			    strdef.h
 ** Created by:				Biao.X
-** Created date:			2026-02-05 17:42:22
+** Created date:			2026-02-06 13:49:08
 ******************************************************************************************************/
+#ifndef __STRDEF_H__
+#define __STRDEF_H__
+
 typedef enum
 {
 	LANGUAGE_CN,
@@ -119,3 +122,5 @@ typedef enum
 	STR_ID_TIMING_MEARSURE_READY_START,
 	STR_ID_MAX
 }RES_STRINGS_ID;
+
+#endif/*__STRDEF_H__*/

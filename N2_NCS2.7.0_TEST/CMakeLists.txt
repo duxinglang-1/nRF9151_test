@@ -19,6 +19,7 @@ target_include_directories(app PRIVATE src)
 target_include_directories(app PRIVATE $ENV{ZEPHYR_BASE}/subsys/fs/nvs)
 
 # Application directories
+add_subdirectory(src/menu)
 add_subdirectory(src/datetime)
 add_subdirectory(src/strings)
 add_subdirectory(src/font)

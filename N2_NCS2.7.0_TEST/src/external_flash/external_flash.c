@@ -669,8 +669,6 @@ void test_flash_write_and_read(uint8_t *buf, uint32_t len)
 	uint32_t PageByteRemain,addr=0;
 	uint32_t date_len = len;
 		
-	LOGD("len:%d", len);
-	
 	addr = IMG_DATA_ADDR;
 	cur_index = addr/SPIFlash_SECTOR_SIZE;
 	if(cur_index > last_index)

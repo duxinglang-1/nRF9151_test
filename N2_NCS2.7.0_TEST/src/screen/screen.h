@@ -26,8 +26,8 @@ extern "C" {
 #define PWRON_STR_H		25
 #define PWRON_STR_X		((LCD_WIDTH-PWRON_STR_W)/2)
 #define PWRON_STR_Y		135
-#define PWRON_LOGO_W	223
-#define PWRON_LOGO_H	30
+#define PWRON_LOGO_W	310
+#define PWRON_LOGO_H	42
 #define PWRON_LOGO_X	((LCD_WIDTH-PWRON_LOGO_W)/2)
 #define PWRON_LOGO_Y	((LCD_HEIGHT-PWRON_LOGO_H)/2)
 
@@ -35,7 +35,7 @@ extern "C" {
 #define IDLE_TIME_W				153
 #define IDLE_TIME_H				60
 #define IDLE_TIME_X				((LCD_WIDTH-IDLE_TIME_W)/2)
-#define IDLE_TIME_Y				48
+#define IDLE_TIME_Y				76
 #define IDLE_TIME_NUM_W			34
 #define IDLE_TIME_NUM_H			60
 #define IDLE_TIME_COLON_W		17
@@ -82,14 +82,14 @@ extern "C" {
 #define IDLE_NET_MODE_Y		31
 
 //battery soc
-#define IDLE_BAT_W		30
-#define IDLE_BAT_H		16
+#define IDLE_BAT_W		36
+#define IDLE_BAT_H		18
 #define IDLE_BAT_X		312
 #define IDLE_BAT_Y		32
 #define IDLE_BAT_PERCENT_W		44
 #define IDLE_BAT_PERCENT_H		18
-#define IDLE_BAT_PERCENT_X		118
-#define IDLE_BAT_PERCENT_Y		30
+#define IDLE_BAT_PERCENT_X		252
+#define IDLE_BAT_PERCENT_Y		28
 #define IDLE_BAT_INNER_RECT_W	22
 #define IDLE_BAT_INNER_RECT_H	8
 #define IDLE_BAT_INNER_RECT_X	316
@@ -108,34 +108,34 @@ extern "C" {
 #define IDLE_CIRCLE_BG_Y	140
 
 //idle hr
-#define IDLE_HR_BG_W		66
-#define IDLE_HR_BG_H		66
-#define IDLE_HR_BG_X		40//87
-#define IDLE_HR_BG_Y		314//167
-#define IDLE_HR_ICON_W		22
-#define IDLE_HR_ICON_H		20
-#define IDLE_HR_ICON_X		62//109
-#define IDLE_HR_ICON_Y		324//177
-#define IDLE_HR_STR_W		36
-#define IDLE_HR_STR_H		20
+#define IDLE_HR_BG_W		92
+#define IDLE_HR_BG_H		92
+#define IDLE_HR_BG_X		40
+#define IDLE_HR_BG_Y		314
+#define IDLE_HR_ICON_W		34
+#define IDLE_HR_ICON_H		30
+#define IDLE_HR_ICON_X		70
+#define IDLE_HR_ICON_Y		326
+#define IDLE_HR_STR_W		58
+#define IDLE_HR_STR_H		30
 #define IDLE_HR_STR_X		(IDLE_HR_BG_X+(IDLE_HR_BG_W-IDLE_HR_STR_W)/2)
-#define IDLE_HR_STR_Y		350//202
+#define IDLE_HR_STR_Y		364
 #define IDLE_HR_NUM_W		12
 #define IDLE_HR_NUM_H		20
 
 //idle spo2
-#define IDLE_SPO2_BG_W		66
-#define IDLE_SPO2_BG_H		66
-#define IDLE_SPO2_BG_X		258//153
-#define IDLE_SPO2_BG_Y		314//134
-#define IDLE_SPO2_ICON_W	18
-#define IDLE_SPO2_ICON_H	24
-#define IDLE_SPO2_ICON_X	284//177
-#define IDLE_SPO2_ICON_Y	318//138
-#define IDLE_SPO2_STR_W		55
-#define IDLE_SPO2_STR_H		20
+#define IDLE_SPO2_BG_W		92
+#define IDLE_SPO2_BG_H		92
+#define IDLE_SPO2_BG_X		258
+#define IDLE_SPO2_BG_Y		314
+#define IDLE_SPO2_ICON_W	26
+#define IDLE_SPO2_ICON_H	36
+#define IDLE_SPO2_ICON_X	292
+#define IDLE_SPO2_ICON_Y	322
+#define IDLE_SPO2_STR_W		58
+#define IDLE_SPO2_STR_H		30
 #define IDLE_SPO2_STR_X		(IDLE_SPO2_BG_X+(IDLE_SPO2_BG_W-IDLE_SPO2_STR_W)/2)
-#define IDLE_SPO2_STR_Y		344//163
+#define IDLE_SPO2_STR_Y		364
 #define IDLE_SPO2_NUM_W		12
 #define IDLE_SPO2_NUM_H		20
 #define IDLE_SPO2_PERC_W	19
@@ -158,18 +158,18 @@ extern "C" {
 #define IDLE_STEPS_NUM_H	20
 
 //idle temp
-#define IDLE_TEMP_BG_W		66
-#define IDLE_TEMP_BG_H		66
-#define IDLE_TEMP_BG_X		150//21
-#define IDLE_TEMP_BG_Y		314//134
-#define IDLE_TEMP_ICON_W	18
-#define IDLE_TEMP_ICON_H	22
-#define IDLE_TEMP_ICON_X	174//45
-#define IDLE_TEMP_ICON_Y	322//141
-#define IDLE_TEMP_STR_W		54
-#define IDLE_TEMP_STR_H		20
+#define IDLE_TEMP_BG_W		92
+#define IDLE_TEMP_BG_H		92
+#define IDLE_TEMP_BG_X		150
+#define IDLE_TEMP_BG_Y		314
+#define IDLE_TEMP_ICON_W	24
+#define IDLE_TEMP_ICON_H	32
+#define IDLE_TEMP_ICON_X	182
+#define IDLE_TEMP_ICON_Y	324
+#define IDLE_TEMP_STR_W		58
+#define IDLE_TEMP_STR_H		30
 #define IDLE_TEMP_STR_X		(IDLE_TEMP_BG_X+(IDLE_TEMP_BG_W-IDLE_TEMP_STR_W)/2)
-#define IDLE_TEMP_STR_Y		344//163
+#define IDLE_TEMP_STR_Y		364
 #define IDLE_TEMP_NUM_W		12
 #define IDLE_TEMP_NUM_H		20
 #define IDLE_TEMP_DOT_W		6
@@ -758,14 +758,14 @@ extern "C" {
 #define SETTINGS_MENU_RESET_NOTIFY_Y		150
 
 //power off
-#define PWR_OFF_ICON_W				127
-#define PWR_OFF_ICON_H				127
+#define PWR_OFF_ICON_W				220
+#define PWR_OFF_ICON_H				220
 #define PWR_OFF_ICON_X				((LCD_WIDTH-PWR_OFF_ICON_W)/2)
 #define PWR_OFF_ICON_Y				((LCD_HEIGHT-PWR_OFF_ICON_H)/2)	
-#define POW_OFF_RUNNING_ANI_W		81
-#define POW_OFF_RUNNING_ANI_H		13
+#define POW_OFF_RUNNING_ANI_W		132
+#define POW_OFF_RUNNING_ANI_H		22
 #define POW_OFF_RUNNING_ANI_X		((LCD_WIDTH-POW_OFF_RUNNING_ANI_W)/2)
-#define POW_OFF_RUNNING_ANI_Y		212
+#define POW_OFF_RUNNING_ANI_Y		378
 
 //Notify
 #define NOTIFY_RECT_W		240
@@ -808,6 +808,7 @@ typedef enum
 {
 	SCREEN_ID_BOOTUP,
 	SCREEN_ID_IDLE,
+	SCREEN_ID_MAIN_MENU,
 	SCREEN_ID_ALARM,
 	SCREEN_ID_FIND_DEVICE,
 	SCREEN_ID_HR,
@@ -918,7 +919,7 @@ extern void EnterFTSmtResultsScreen(void);
 extern void EnterFTAssemResultsScreen(void);
 #endif
 extern void EnterFallScreen(void);
-
+extern void EnterMainMenuScreen(void);
 #ifdef __cplusplus
 }
 #endif

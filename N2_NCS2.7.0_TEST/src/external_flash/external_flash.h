@@ -62,7 +62,7 @@
 #define	SPI_TXRX_MAX_LEN		(1024*4)	//255	(1024*2)
 
 /***************************************************img start*********************************************************/
-//IMG在flash里占用2M的空间(0x000000~0x1FFFFF)
+//IMG在flash里占用3.5M的空间(0x000000~0x37FFFF)
 #define IMG_START_ADDR						0x000000
 //img ver
 #define IMG_VER_ADDR						IMG_START_ADDR
@@ -878,12 +878,12 @@
 #define IMG_FALL_CANCEL_SIZE				(7208)
 #define IMG_FALL_CANCEL_END					(IMG_FALL_CANCEL_ADDR+IMG_FALL_CANCEL_SIZE)
 
-#define IMG_END_ADDR						0x1FFFFF
+#define IMG_END_ADDR						0x37FFFF
 /***************************************************img end*********************************************************/
 
 /***************************************************font start*********************************************************/
-//FONT在flash里占用5M的空间(0x200000~0x6FFFFF)
-#define FONT_START_ADDR						0x200000
+//FONT在flash里占用4M的空间(0x380000~0x77FFFF) 4M
+#define FONT_START_ADDR						0x380000
 
 #define FONT_VER_ADDR						(FONT_START_ADDR)
 #define FONT_VER_SIZE						(16)
@@ -915,12 +915,12 @@
 #define FONT_EN_UNI_68_SIZE					(255832)
 #define FONT_EN_UNI_68_END					(FONT_EN_UNI_68_ADDR+FONT_EN_UNI_68_SIZE)
 
-#define FONT_END_ADDR						0x6FFFFF
+#define FONT_END_ADDR						0x77FFFF
 /***************************************************font end*********************************************************/
 
 /************************************************ppg algo begin******************************************************/
-//PPG算法 flash里占用512K的空间(0x700000~0x780000)
-#define PPG_ALGO_START_ADDR					0x700000
+//PPG算法 flash里占用384K的空间(0x780000~0x7DFFFF)
+#define PPG_ALGO_START_ADDR					0x780000
 
 #define PPG_ALGO_VER_ADDR					PPG_ALGO_START_ADDR
 #define PPG_ALGO_VER_SIZE					(16)
@@ -930,11 +930,11 @@
 #define PPG_ALGO_FW_SIZE 					(353024)
 #define PPG_ALGO_FW_END						(PPG_ALGO_FW_ADDR+PPG_ALGO_FW_SIZE)
 
-#define PPG_ALGO_END_ADDR					0x77ffff
+#define PPG_ALGO_END_ADDR					0x7DFFFF
 /***************************************************ppg algo end*****************************************************/
 
 /*************************************************health data begin**************************************************/
-//记录数据 flash里占用128K的空间(0x780000~0x79ffff)
+//记录数据 flash里占用64K的空间(0x7E0000~0x7EFFFF)
 #define DATA_START_ADDR						0x780000
 //PPG DATA
 #define PPG_BPT_CAL_DATA_ADDR				(DATA_START_ADDR)
@@ -995,12 +995,12 @@
 #define SLEEP_REC2_DATA_SIZE				(7*(4+24*4))//700
 #define SLEEP_REC2_DATA_END					(SLEEP_REC2_DATA_ADDR+SLEEP_REC2_DATA_SIZE)
 
-#define DATA_END_ADDR						0x79ffff
+#define DATA_END_ADDR						0x7EFFFF
 /*************************************************health date end****************************************************/
 
 /************************************************strlib data begin***************************************************/
-//字符串数据 flash里占用384K的空间(0x7a0000~0x800000)
-#define STR_START_ADDR					0x7a0000
+//字符串数据 flash里占用64K的空间(0x7F0000~0x800000)
+#define STR_START_ADDR					0x7F0000
 
 #define STR_VER_ADDR					STR_START_ADDR
 #define STR_VER_SIZE					(16)

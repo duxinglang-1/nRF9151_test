@@ -3385,7 +3385,7 @@ void LCD_ShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_
 	}
 }
 
-void LCD_AdaptShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p, LCD_SHOW_ALIGN_ENUM mode)
+void LCD_AdaptShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p, LCD_SHOW_ALIGN_ENUM x_mode, LCD_SHOW_ALIGN_ENUM y_mode)
 {
 	uint16_t str_x = x, str_y = y, str_w, str_h;
 	uint16_t show_x, show_y, show_w, show_h;
@@ -3427,7 +3427,7 @@ void LCD_AdaptShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16
 			}
 
 			LCD_MeasureUniString(tmpbuf, &show_w, &show_h);
-			if(mode == SHOW_ALIGN_CENTER)
+			if(x_mode == SHOW_ALIGN_CENTER)
 				show_x = x+(width-show_w)/2;
 			else
 				show_x = x;
@@ -3455,19 +3455,27 @@ void LCD_AdaptShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16
 	if(mmi_ucs2strlen(tmpbuf) > 0)
 	{
 		LCD_MeasureUniString(tmpbuf, &show_w, &show_h);
-		if(mode == SHOW_ALIGN_CENTER)
+		if(x_mode == SHOW_ALIGN_CENTER)
 			show_x = x+(width-show_w)/2;
 		else
 			show_x = x;
 
 		if(str_y == y)
-			LCD_ShowUniString(show_x, y+(height-show_h)/2, tmpbuf);
+		{
+			if(y_mode == SHOW_ALIGN_CENTER)
+				show_y = y+(height-show_h)/2;
+			else
+				show_y = y;
+			LCD_ShowUniString(show_x, show_y, tmpbuf);
+		}
 		else
+		{
 			LCD_ShowUniString(show_x, str_y, tmpbuf);
+		}
 	}
 }
 
-void LCD_AdaptShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p, LCD_SHOW_ALIGN_ENUM mode)
+void LCD_AdaptShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p, LCD_SHOW_ALIGN_ENUM x_mode, LCD_SHOW_ALIGN_ENUM y_mode)
 {
 	uint16_t str_x=x, str_y=y, str_w, str_h;
 	uint16_t i, show_x, show_y, show_w, show_h;
@@ -3553,7 +3561,7 @@ void LCD_AdaptShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, ui
 			}
 
 			LCD_MeasureUniString(tmpbuf, &show_w, &show_h);
-			if(mode == SHOW_ALIGN_CENTER)
+			if(x_mode == SHOW_ALIGN_CENTER)
 				show_x = x-(width-show_w)/2;
 			else
 				show_x = x;
@@ -3583,15 +3591,23 @@ void LCD_AdaptShowUniStringRtoLInRect(uint16_t x, uint16_t y, uint16_t width, ui
 	if(mmi_ucs2strlen(tmpbuf) > 0)
 	{
 		LCD_MeasureUniString(tmpbuf, &show_w, &show_h);
-		if(mode == SHOW_ALIGN_CENTER)
+		if(x_mode == SHOW_ALIGN_CENTER)
 			show_x = x-(width-show_w)/2;
 		else
 			show_x = x;
 
 		if(str_y == y)
-			LCD_SmartShowUniString(show_x, y+(height-show_h)/2, tmpbuf);
+		{
+			if(y_mode == SHOW_ALIGN_CENTER)
+				show_y = y+(height-show_h)/2;
+			else
+				show_y = y;
+			LCD_SmartShowUniString(show_x, show_y, tmpbuf);
+		}
 		else
+		{
 			LCD_SmartShowUniString(show_x, str_y, tmpbuf);
+		}
 	}
 }
 

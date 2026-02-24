@@ -18,7 +18,7 @@
 
 static bool mainmenu_redraw_flag = false;
 
-static uint8_t main_menu_index_bk = 0;
+uint8_t g_main_menu_index = 0;
 
 main_menu_t main_menu = {0};
 
@@ -50,32 +50,32 @@ const main_menu_t MAIN_MENU_DATA =
 	0,
 	12,
 	{
-		IMG_ID_MENU_RESPIRATORY_ICON,
-		IMG_ID_MENU_FAT_ICON,
-		IMG_ID_MENU_PRESURE_ICON,
-		IMG_ID_MENU_SYNC_ICON,
-		IMG_ID_MENU_PWROFF_ICON,
-		IMG_ID_MENU_SETTINGS_ICON,
 		IMG_ID_MENU_STEP_ICON,
 		IMG_ID_MENU_HR_ICON,
 		IMG_ID_MENU_TEMP_C_ICON,
 		IMG_ID_MENU_SPO2_ICON,
 		IMG_ID_MENU_BPT_ICON,
 		IMG_ID_MENU_ECG_ICON,
+		IMG_ID_MENU_RESPIRATORY_ICON,
+		IMG_ID_MENU_FAT_ICON,
+		IMG_ID_MENU_PRESURE_ICON,
+		IMG_ID_MENU_SYNC_ICON,
+		IMG_ID_MENU_PWROFF_ICON,
+		IMG_ID_MENU_SETTINGS_ICON,
 	},
 	{
-		STR_ID_LANGUAGES,
-		STR_ID_SCR_BRIGHT,
-		STR_ID_TEMP_DSP,
-		STR_ID_DEVICE_INFO,
-		STR_ID_CAREMATE_QR,
-		STR_ID_FACTORY_DEFAULT,
-		STR_ID_OTA,
-		STR_ID_LANGUAGES,
-		STR_ID_LANGUAGES,
-		STR_ID_LANGUAGES,
-		STR_ID_LANGUAGES,
-		STR_ID_LANGUAGES,
+		STR_ID_MAIN_MENU_STEPS,
+		STR_ID_MAIN_MENU_HR,
+		STR_ID_MAIN_MENU_TEMP,
+		STR_ID_MAIN_MENU_SPO2,
+		STR_ID_MAIN_MENU_BPT,
+		STR_ID_MAIN_MENU_ECG,
+		STR_ID_MAIN_MENU_RESPIRATORY,
+		STR_ID_MAIN_MENU_BODY_FAT,
+		STR_ID_MAIN_MENU_EMOTION,
+		STR_ID_MAIN_MENU_SYNCH,
+		STR_ID_MAIN_MENU_SHUTDOWN,
+		STR_ID_MAIN_MENU_SETTINGS,
 	},
 	{
 		//select proc func
@@ -96,96 +96,118 @@ const main_menu_t MAIN_MENU_DATA =
 		//page proc func
 		MainMenuPgUpProc,
 		MainMenuPgDownProc,
-		MainMenuDumpProc,
-		MainMenuDumpProc,
+		MainMenuPgLeftProc,
+		MainMenuPgRightProc,
 	},
 };
 
 void MainMenu1Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 
 }
 
 void MainMenu2Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu3Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu4Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu5Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu6Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu7Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu8Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu9Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu10Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu11Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu12Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu13Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenu14Proc(void)
 {
-	main_menu_index_bk = main_menu.index;
+	g_main_menu_index = main_menu.index;
 }
 
 void MainMenuPgUpProc(void)
 {
+	uint8_t count;
+	
+	count = MAIN_MENU_MAX_PER_PG;
+	
+	if(main_menu.index < (main_menu.count - count))
+	{
+		main_menu.index += count;
+		if(screen_id == SCREEN_ID_MAIN_MENU)
+			scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
 }
 
 void MainMenuPgDownProc(void)
 {
+	uint8_t count;
+
+	count = MAIN_MENU_MAX_PER_PG;
+	
+	if(main_menu.index >= count)
+	{
+		main_menu.index -= count;
+		if(screen_id == SCREEN_ID_MAIN_MENU)
+			scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
 }
 
 void MainMenuPgLeftProc(void)
 {
+	EnterPoweroffScreen();
 }
 
 void MainMenuPgRightProc(void)
 {
+	EnterIdleScreen();
 }
 
 
@@ -196,7 +218,7 @@ void MainMenuMsgPorcess(void)
 void EnterMainMenu(void)
 {
 	memcpy(&main_menu, &MAIN_MENU_DATA, sizeof(main_menu_t));
-	main_menu.index = main_menu_index_bk;
+	main_menu.index = g_main_menu_index;
 	
 	EnterMainMenuScreen();
 }

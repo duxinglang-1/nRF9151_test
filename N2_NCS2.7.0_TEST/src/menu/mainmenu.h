@@ -20,6 +20,31 @@
 #define MAIN_MENU_NAME_MAX	25
 #define MAIN_MENU_NAME_STR_MAX	15
 
+#define MAIN_MENU_MAX_PER_PG		6
+#define MAIN_MENU_MAX_PER_ROW		3
+
+#define MAIN_MENU_BG_X			0
+#define MAIN_MENU_BG_Y			70
+#define MAIN_MENU_BG_W			LCD_WIDTH
+#define MAIN_MENU_BG_H			(LCD_HEIGHT-MAIN_MENU_BG_Y)
+
+#define MAIN_MENU_ICON_W			90
+#define MAIN_MENU_ICON_H			90
+#define MAIN_MENU_ICON_X			30
+#define MAIN_MENU_ICON_Y			90
+#define MAIN_MENU_ICON_OFFSET_W		30
+#define MAIN_MENU_ICON_OFFSET_H		84
+#define MAIN_MENU_STR_W				114
+#define MAIN_MENU_STR_H				52
+#define MAIN_MENU_STR_X				18
+#define MAIN_MENU_STR_Y				190
+#define MAIN_MENU_STR_OFFSET_W		6
+#define MAIN_MENU_STR_OFFSET_H		130
+#define MAIN_MENU_PG_DOT_W			10
+#define MAIN_MENU_PG_DOT_H			28
+#define MAIN_MENU_PG_DOT_X			370
+#define MAIN_MENU_PG_DOT_Y			(LCD_HEIGHT-MAIN_MENU_PG_DOT_H)/2
+
 typedef void(*main_menu_handler)(void);
 
 typedef enum
@@ -50,6 +75,9 @@ typedef struct
 	main_menu_handler sel_handler[MAIN_MENU_MAX_COUNT];
 	main_menu_handler pg_handler[4];
 }main_menu_t;
+
+extern uint8_t g_main_menu_index;
+extern main_menu_t main_menu;
 
 extern void EnterMainMenu(void);
 #endif/*__MAINMENU_H__*/

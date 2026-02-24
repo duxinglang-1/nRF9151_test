@@ -1,7 +1,7 @@
 /****************************************Copyright (c)************************************************
 ** File name:			    strdef.h
 ** Created by:				Biao.X
-** Created date:			2026-02-06 13:49:08
+** Created date:			2026-02-06 14:52:18
 ******************************************************************************************************/
 #ifndef __STRDEF_H__
 #define __STRDEF_H__
@@ -120,6 +120,19 @@ typedef enum
 	STR_ID_FALL_LOCATION_REAR,
 	STR_ID_SENSOR_IS_RUNNING,
 	STR_ID_TIMING_MEARSURE_READY_START,
+	STR_ID_MAIN_MENU_STEPS,
+	STR_ID_MAIN_MENU_HR,
+	STR_ID_MAIN_MENU_TEMP,
+	STR_ID_MAIN_MENU_SPO2,
+	STR_ID_MAIN_MENU_BPT,
+	STR_ID_MAIN_MENU_ECG,
+	STR_ID_MAIN_MENU_RESPIRATORY,
+	STR_ID_MAIN_MENU_BODY_FAT,
+	STR_ID_MAIN_MENU_EMOTION,
+	STR_ID_MAIN_MENU_SYNCH,
+	STR_ID_MAIN_MENU_SHUTDOWN,
+	STR_ID_MAIN_MENU_SETTINGS,
+	STR_ID_MAIN_MENU_FENCE,
 	STR_ID_MAX
 }RES_STRINGS_ID;
 

@@ -198,7 +198,7 @@ void LCD_ShowUniStrRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	}
 }
 
-void LCD_AdaptShowUniStrInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, RES_STRINGS_ID str_id, LCD_SHOW_ALIGN_ENUM mode)
+void LCD_AdaptShowUniStrInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, RES_STRINGS_ID str_id, LCD_SHOW_ALIGN_ENUM x_align, LCD_SHOW_ALIGN_ENUM y_align)
 {
 	uint16_t *ptr;
 
@@ -208,12 +208,12 @@ void LCD_AdaptShowUniStrInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	ptr = GetStrDataFromFlashByID(str_id);
 	if(ptr)
 	{
-		LCD_AdaptShowUniStringInRect(x, y, width, height, ptr, mode);
+		LCD_AdaptShowUniStringInRect(x, y, width, height, ptr, x_align, y_align);
 		k_free(ptr);
 	}
 }
 
-void LCD_AdaptShowUniStrRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, RES_STRINGS_ID str_id, LCD_SHOW_ALIGN_ENUM mode)
+void LCD_AdaptShowUniStrRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, RES_STRINGS_ID str_id, LCD_SHOW_ALIGN_ENUM x_align, LCD_SHOW_ALIGN_ENUM y_align)
 {
 	uint16_t *ptr;
 
@@ -223,7 +223,7 @@ void LCD_AdaptShowUniStrRtoLInRect(uint16_t x, uint16_t y, uint16_t width, uint1
 	ptr = GetStrDataFromFlashByID(str_id);
 	if(ptr)
 	{
-		LCD_AdaptShowUniStringRtoLInRect(x, y, width, height, ptr, mode);
+		LCD_AdaptShowUniStringRtoLInRect(x, y, width, height, ptr, x_align, y_align);
 		k_free(ptr);
 	}
 }

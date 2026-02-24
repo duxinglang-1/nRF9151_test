@@ -1,7 +1,7 @@
 /****************************************Copyright (c)************************************************
 ** File name:			    imgdef.h
 ** Created by:				Biao.X
-** Created date:			2026-02-06 14:00:31
+** Created date:			2026-02-06 16:44:30
 ******************************************************************************************************/
 #ifndef __IMGDEF_H__
 #define __IMGDEF_H__
@@ -243,8 +243,6 @@ typedef enum
 	IMG_ID_TEMP_IDLE_ICON,
 	IMG_ID_TEMP_MAX_REC,
 	IMG_ID_TEMP_MIN_REC,
-	IMG_ID_TEMP_UINT_C,
-	IMG_ID_TEMP_UNIT_F,
 	IMG_ID_MAX
 }RES_IMG_ID;
 

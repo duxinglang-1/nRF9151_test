@@ -22,6 +22,10 @@
 #include "external_flash.h"
 #include "uart.h"
 #include "settings.h"
+#include "screen.h"
+#ifdef CONFIG_DATA_DOWNLOAD_SUPPORT
+#include "data_download.h"
+#endif/*CONFIG_DATA_DOWNLOAD_SUPPORT*/
 #ifdef CONFIG_TOUCH_SUPPORT
 #include "CST816.h"
 #endif
@@ -78,8 +82,8 @@ void test_show_image(void)
 	//LCD_get_pic_size(peppa_pig_160X160, &w, &h);
 	//LCD_dis_pic_rotate(0,200,peppa_pig_160X160,270);
 	//LCD_dis_pic(0, 0, peppa_pig_160X160);
-	LCD_get_pic_size_from_flash(IMG_PWROFF_BUTTON_ADDR, &w, &h);
-	LCD_dis_pic_from_flash((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_PWROFF_BUTTON_ADDR);
+	LCD_MeasureImage(IMG_ID_TEMP_MIN_REC, &w, &h);
+	LCD_ShowImage((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_ID_TEMP_MIN_REC);
 	//LCD_dis_pic_rotate_from_flash((LCD_WIDTH-w)/2, (LCD_HEIGHT-h)/2, IMG_ANALOG_CLOCK_HAND_HOUR_ADDR, 270);
 	//LCD_dis_pic_angle_from_flash(0, 0, IMG_ANALOG_CLOCK_HAND_SEC_ADDR, 360);
 	while(0)

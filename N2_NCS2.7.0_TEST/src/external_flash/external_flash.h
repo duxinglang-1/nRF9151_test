@@ -935,7 +935,7 @@
 
 /*************************************************health data begin**************************************************/
 //记录数据 flash里占用64K的空间(0x7E0000~0x7EFFFF)
-#define DATA_START_ADDR						0x780000
+#define DATA_START_ADDR						0x7E0000
 //PPG DATA
 #define PPG_BPT_CAL_DATA_ADDR				(DATA_START_ADDR)
 #define PPG_BPT_CAL_DATA_SIZE				(240)

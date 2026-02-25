@@ -1302,7 +1302,7 @@ void PowerOffShowStatus(void)
 	register_touch_event_handle(TP_EVENT_MOVING_LEFT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterIdleScreen);
 
  #ifdef NB_SIGNAL_TEST
-  #if 1	//xb add 2026-02-06
+  #if 0	//xb add 2026-02-06
 	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterMainMenu);
   #else
 	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterSettings);
@@ -1340,7 +1340,7 @@ void PowerOffShowStatus(void)
 		}
 		else
 		{
-		#if 1	//xb add 2026-02-06
+		#if 0	//xb add 2026-02-06
 			register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterMainMenu);
 		#else
 			register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterSettings);
@@ -1348,7 +1348,7 @@ void PowerOffShowStatus(void)
 		}
 	}
   #else
-   #if 1	//xb add 2026-02-06
+   #if 0	//xb add 2026-02-06
    	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterMainMenu);
    #else
   	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterSettings);
@@ -6590,7 +6590,7 @@ void EnterIdleScreen(void)
 #ifdef NB_SIGNAL_TEST
 	SetLeftKeyUpHandler(EnterNBTestScreen);
 #else
- #if 1	//xb add 2026-02-06
+ #if 0	//xb add 2026-02-06
  	SetLeftKeyUpHandler(EnterMainMenu);
  #else	
   #if defined(CONFIG_IMU_SUPPORT)&&(defined(CONFIG_STEP_SUPPORT)||defined(CONFIG_SLEEP_SUPPORT))
@@ -6621,7 +6621,7 @@ void EnterIdleScreen(void)
 	register_touch_event_handle(TP_EVENT_MOVING_LEFT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterNBTestScreen);
  	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterPoweroffScreen);
  #else
-  #if 1	//xb add 2026-02-06
+  #if 0	//xb add 2026-02-06
   	register_touch_event_handle(TP_EVENT_MOVING_LEFT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterMainMenu);
   #else
   #if defined(CONFIG_IMU_SUPPORT)&&(defined(CONFIG_STEP_SUPPORT)||defined(CONFIG_SLEEP_SUPPORT))

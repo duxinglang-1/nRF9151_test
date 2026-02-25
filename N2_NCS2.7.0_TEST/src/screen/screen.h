@@ -107,14 +107,32 @@ extern "C" {
 #define IDLE_CIRCLE_BG_X	24
 #define IDLE_CIRCLE_BG_Y	140
 
+//idle temp
+#define IDLE_TEMP_BG_W		92
+#define IDLE_TEMP_BG_H		92
+#define IDLE_TEMP_BG_X		40
+#define IDLE_TEMP_BG_Y		314
+#define IDLE_TEMP_ICON_W	24
+#define IDLE_TEMP_ICON_H	32
+#define IDLE_TEMP_ICON_X	72
+#define IDLE_TEMP_ICON_Y	324
+#define IDLE_TEMP_STR_W		58
+#define IDLE_TEMP_STR_H		30
+#define IDLE_TEMP_STR_X		(IDLE_TEMP_BG_X+(IDLE_TEMP_BG_W-IDLE_TEMP_STR_W)/2)
+#define IDLE_TEMP_STR_Y		364
+#define IDLE_TEMP_NUM_W		12
+#define IDLE_TEMP_NUM_H		20
+#define IDLE_TEMP_DOT_W		6
+#define IDLE_TEMP_DOT_H		20
+
 //idle hr
 #define IDLE_HR_BG_W		92
 #define IDLE_HR_BG_H		92
-#define IDLE_HR_BG_X		40
+#define IDLE_HR_BG_X		150
 #define IDLE_HR_BG_Y		314
 #define IDLE_HR_ICON_W		34
 #define IDLE_HR_ICON_H		30
-#define IDLE_HR_ICON_X		70
+#define IDLE_HR_ICON_X		180
 #define IDLE_HR_ICON_Y		326
 #define IDLE_HR_STR_W		58
 #define IDLE_HR_STR_H		30
@@ -156,24 +174,6 @@ extern "C" {
 #define IDLE_STEPS_STR_Y	192
 #define IDLE_STEPS_NUM_W	12
 #define IDLE_STEPS_NUM_H	20
-
-//idle temp
-#define IDLE_TEMP_BG_W		92
-#define IDLE_TEMP_BG_H		92
-#define IDLE_TEMP_BG_X		150
-#define IDLE_TEMP_BG_Y		314
-#define IDLE_TEMP_ICON_W	24
-#define IDLE_TEMP_ICON_H	32
-#define IDLE_TEMP_ICON_X	182
-#define IDLE_TEMP_ICON_Y	324
-#define IDLE_TEMP_STR_W		58
-#define IDLE_TEMP_STR_H		30
-#define IDLE_TEMP_STR_X		(IDLE_TEMP_BG_X+(IDLE_TEMP_BG_W-IDLE_TEMP_STR_W)/2)
-#define IDLE_TEMP_STR_Y		364
-#define IDLE_TEMP_NUM_W		12
-#define IDLE_TEMP_NUM_H		20
-#define IDLE_TEMP_DOT_W		6
-#define IDLE_TEMP_DOT_H		20
 
 //notify
 #define NOTIFY_IMG_MAX_COUNT	10

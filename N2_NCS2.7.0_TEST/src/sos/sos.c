@@ -295,13 +295,13 @@ void SOSRecLocatNotify(uint8_t *strmsg)
 							sizeof(strtmp));
 
 	#ifdef FONTMAKER_UNICODE_FONT
-		LCD_SetFontSize(FONT_SIZE_20);
+		LCD_SetFontSize(FONT_SIZE_28);
 	#else		
 		LCD_SetFontSize(FONT_SIZE_16);
 	#endif
 
-		infor.w = 200;
-		infor.h = 120;
+		infor.w = 300;
+		infor.h = 200;
 		infor.x = (LCD_WIDTH-infor.w)/2;
 		infor.y = (LCD_HEIGHT-infor.h)/2;
 

@@ -51,6 +51,7 @@ PPG_WORK_STATUS g_ppg_status = PPG_STATUS_PREPARE;
 
 static bool ppg_is_wait_upgrade = false;
 static bool ppg_delay_start_flag = false;
+static bool ppg_get_infor_flag = false;
 static bool ppg_start_flag = false;
 static bool ppg_test_flag = false;
 static bool ppg_stop_flag = false;
@@ -93,6 +94,8 @@ static uint8_t temp_spo2[PPG_SPO2_COUNT_MAX] = {0};
 static uint8_t rec2buf[PPG_BPT_REC2_DATA_SIZE] = {0};
 static uint8_t databuf[PPG_BPT_REC2_DATA_SIZE] = {0};
 
+static void ppg_get_infor_timerout(struct k_timer *timer_id);
+K_TIMER_DEFINE(ppg_get_infor_timer, ppg_get_infor_timerout, NULL);
 static void ppg_auto_stop_timerout(struct k_timer *timer_id);
 K_TIMER_DEFINE(ppg_stop_timer, ppg_auto_stop_timerout, NULL);
 static void ppg_menu_stop_timerout(struct k_timer *timer_id);
@@ -1025,6 +1028,12 @@ void PPGRedrawData(void)
 		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
 	}
 }
+
+static void ppg_get_infor_timerout(struct k_timer *timer_id)
+{
+	ppg_get_infor_flag = true;
+}
+
 
 static void ppg_auto_stop_timerout(struct k_timer *timer_id)
 {
@@ -2008,13 +2017,16 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 		}
 		else if((ptr1 = strstr(ptr, COM_PPG_GET_INFOR)) != NULL)
 		{
+			ppg_get_infor_flag = false;
+			k_timer_stop(&ppg_get_infor_timer);
+			
 			ptr1 += strlen(COM_PPG_GET_INFOR);
 			strcpy(g_ppg_ver, ptr1);
 		#ifdef PPG_DEBUG
 			LOGD("g_ppg_ver:%s", g_ppg_ver);
 		#endif
 
-			if((strlen(g_ppg_ver) == 0) || ((strcmp(g_ppg_ver, g_ppg_algo_ver) != 0)&&(strlen(g_ppg_algo_ver) > 0)))
+			if((strlen(g_ppg_ver) > 0) && ((strcmp(g_ppg_ver, g_ppg_algo_ver) != 0)&&(strlen(g_ppg_algo_ver) > 0)))
 			{
 				uint8_t strtmp[512] = {0};
 				notify_infor infor = {0};
@@ -2173,6 +2185,8 @@ void PPG_init(void)
 		g_bpt.diastolic = last_health.bpt_rec.bpt.diastolic;
 	}
 
+	k_timer_start(&ppg_get_infor_timer, K_MSEC(500), K_NO_WAIT);
+
 #ifdef PPG_DEBUG	
 	LOGD("PPG_init done!");
 #endif
@@ -2183,6 +2197,12 @@ void PPGMsgProcess(void)
 	if(ppg_int_event)
 	{
 		ppg_int_event = false;
+	}
+
+	if(ppg_get_infor_flag)
+	{
+		CopcsSendData(UART_DATA_PPG, COM_PPG_GET_INFOR, strlen(COM_PPG_GET_INFOR));
+		ppg_get_infor_flag = false;
 	}
 	
 #ifdef CONFIG_FACTORY_TEST_SUPPORT

@@ -4927,7 +4927,7 @@ void NotifyUpdate(void)
 		#ifdef CONFIG_ANIMATION_SUPPORT
 			AnimaStop();
 		#endif
-			LCD_Fill(notify_msg.x+1, notify_msg.y+1, notify_msg.w-2, (notify_msg.h*2)/3-2, BLACK);
+			LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-4, (notify_msg.h*2)/3-4, BLACK);
 			
 			if(notify_msg.img != NULL && notify_msg.img_count > 0)
 			{	
@@ -4947,7 +4947,7 @@ void NotifyUpdate(void)
 		{
 			scr_msg[SCREEN_ID_NOTIFY].para &= (~SCREEN_EVENT_UPDATE_POP_STR);
 			
-			LCD_Fill(notify_msg.x+1, (notify_msg.h*2)/3+1, notify_msg.w-2, (notify_msg.h*1)/3-2, BLACK);
+			LCD_Fill(notify_msg.x+2, (notify_msg.h*2)/3+2, notify_msg.w-4, (notify_msg.h*1)/3-4, BLACK);
 			LCD_MeasureUniString(notify_msg.text, &w, &h);
 			if(w > (str_w-2*offset_w))
 			{
@@ -5051,7 +5051,7 @@ void NotifyShow(void)
 		LCD_DrawRectangle(notify_msg.x, notify_msg.y, notify_msg.w, notify_msg.h);
 	}
 
-	LCD_Fill(notify_msg.x+1, notify_msg.y+1, notify_msg.w-2, notify_msg.h-2, BLACK);
+	LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-4, notify_msg.h-4, BLACK);
 
 	switch(notify_msg.align)
 	{

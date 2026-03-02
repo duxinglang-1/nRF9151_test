@@ -839,10 +839,8 @@ void GetSystemDateStrings(uint8_t *str_date)
 		break;
 	}
 
-#ifdef FONTMAKER_UNICODE_FONT
 	strcpy(tmpbuf, str_date);
 	mmi_asc_to_ucs2(str_date, tmpbuf);
-#endif
 }
 
 void GetSysteAmPmStrings(uint8_t *str_ampm)
@@ -864,11 +862,8 @@ void GetSysteAmPmStrings(uint8_t *str_ampm)
 		break;
 	}
 
-#ifdef FONTMAKER_UNICODE_FONT
 	strcpy(tmpbuf, str_ampm);
 	mmi_asc_to_ucs2(str_ampm, tmpbuf);
-#endif
-
 }
 
 void GetSystemTimeStrings(uint8_t *str_time)

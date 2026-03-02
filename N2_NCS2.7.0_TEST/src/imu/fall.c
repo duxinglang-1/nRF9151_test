@@ -339,11 +339,7 @@ void FallRecLocatNotify(uint8_t *strmsg)
 							strtmp,
 							sizeof(strtmp));
 
-	#ifdef FONTMAKER_UNICODE_FONT
 		LCD_SetFontSize(FONT_SIZE_20);
-	#else		
-		LCD_SetFontSize(FONT_SIZE_16);
-	#endif
 
 		infor.w = 200;
 		infor.h = 120;

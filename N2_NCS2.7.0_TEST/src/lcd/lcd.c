@@ -3758,8 +3758,6 @@ void LCD_ShowStringInRect(uint16_t x,uint16_t y,uint16_t width,uint16_t height,u
 		  #ifdef FONTMAKER_UNICODE_FONT
 			w = LCD_Show_Uni_Char_from_flash(str_x,str_y,*p,0);
 		  	str_x += w;
-		  #elif defined(FONTMAKER_MBCS_FONT)
-
 		  #else	
 			LCD_ShowChar_from_flash(str_x,str_y,*p,0);
 		  #endif
@@ -3775,9 +3773,6 @@ void LCD_ShowStringInRect(uint16_t x,uint16_t y,uint16_t width,uint16_t height,u
 			phz += *(p+1);
 		#ifdef IMG_FONT_FROM_FLASH
 		  #ifdef FONTMAKER_UNICODE_FONT
-
-		  #elif defined(FONTMAKER_MBCS_FONT)
-
 		  #else
 			LCD_ShowChineseChar_from_flash(str_x,str_y,phz,0);
 		  #endif

@@ -1116,11 +1116,8 @@ void StartPPG(PPG_DATA_TYPE data_type, PPG_TRIGGER_SOURCE trigger_type)
 	if(PPGIsSccCheck())
 		PPGStopCheck();
 
-#ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
-#else
-	LCD_SetFontSize(FONT_SIZE_16);
-#endif
+	LCD_SetFontSize(FONT_SIZE_28);
+	
 	infor.x = 0;
 	infor.y = 0;
 	infor.w = LCD_WIDTH;
@@ -1550,11 +1547,9 @@ void PPGDataProcess(uint8_t *data, uint32_t data_len)
 	uint16_t heart_rate=0,blood_oxy=0;
 	static uint8_t count=0;
 	notify_infor infor = {0};
-#ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_20);
-#else		
-	LCD_SetFontSize(FONT_SIZE_16);
-#endif	
+
+	LCD_SetFontSize(FONT_SIZE_28);
+
 	infor.x = 0;
 	infor.y = 0;
 	infor.w = LCD_WIDTH;

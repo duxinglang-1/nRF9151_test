@@ -1375,11 +1375,8 @@ bool sh_init_interface(void)
 	if((mcu_type != 1) || ((strcmp(g_ppg_ver, g_ppg_algo_ver) != 0)&&(strlen(g_ppg_algo_ver) > 0)))
 	{
 need_update:
-	#ifdef FONTMAKER_UNICODE_FONT
 		LCD_SetFontSize(FONT_SIZE_20);
-	#else	
-		LCD_SetFontSize(FONT_SIZE_16);
-	#endif
+
 		NotifyShowStrings((LCD_WIDTH-180)/2, (LCD_HEIGHT-120)/2, 180, 120, NULL, 0, "PPG is upgrading firmware, please wait a few minutes!");
 		SH_OTA_upgrade_process();
 		s32_status = sh_get_hub_fw_version(u8_rxbuf);

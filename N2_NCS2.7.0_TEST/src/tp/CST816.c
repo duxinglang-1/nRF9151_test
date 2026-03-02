@@ -1068,17 +1068,10 @@ void test_tp(void)
 	uint8_t tmpbuf[128] = {0};
 
 #if 0
-#ifdef FONTMAKER_UNICODE_FONT
 	mmi_asc_to_ucs2(tmpbuf, "TP_TEST");
 	LCD_SetFontSize(FONT_SIZE_36);
 	LCD_MeasureUniString(tmpbuf, &w, &h);
 	LCD_ShowUniString((LCD_WIDTH-w)/2,20,tmpbuf);
-#else
-	sprintf(tmpbuf, "TP_TEST");
-	LCD_SetFontSize(FONT_SIZE_32);
-	LCD_MeasureString(tmpbuf, &w, &h);
-	LCD_ShowString((LCD_WIDTH-w)/2,20,tmpbuf);
-#endif
 #endif
 	tp_init();
 }

@@ -253,12 +253,13 @@ void LCD_DrawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
  
 	BlockWrite(x,y,w,dot_w);
 	DispColor(w*dot_w, POINT_COLOR);
-	BlockWrite(x,y,dot_w,h);
-	DispColor(h*dot_w, POINT_COLOR);
 	BlockWrite(x,y+h,w,dot_w);
 	DispColor(w*dot_w, POINT_COLOR);
-	BlockWrite(x+w,y,dot_w,h);
-	DispColor(h*dot_w, POINT_COLOR);	
+
+	BlockWrite(x,y,dot_w,h+2);
+	DispColor((h+2)*dot_w, POINT_COLOR);
+	BlockWrite(x+w,y,dot_w,h+2);
+	DispColor((h+2)*dot_w, POINT_COLOR);	
 
 #else
 	LCD_DrawLine(x,y,x+w,y);

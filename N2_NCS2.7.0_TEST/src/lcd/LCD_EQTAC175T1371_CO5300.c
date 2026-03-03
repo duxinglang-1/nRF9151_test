@@ -324,17 +324,15 @@ void LCD_Clear(uint16_t color)
 //背光打开
 void LCD_BL_On(void)
 {
-#ifdef LCD_BACKLIGHT_CONTROLED_BY_PMU
-	Set_Screen_Backlight_On();
-#endif	
+	WriteComm(0x51);
+	WriteData(0x40+(0xff-0x40)*global_settings.backlight_level/BACKLIGHT_LEVEL_MAX);
 }
 
 //背光关闭
 void LCD_BL_Off(void)
 {
-#ifdef LCD_BACKLIGHT_CONTROLED_BY_PMU
-	Set_Screen_Backlight_Off();
-#endif
+	WriteComm(0x51);
+	WriteData(0x00);
 }
 
 //屏幕睡眠
@@ -345,7 +343,7 @@ void LCD_SleepIn(void)
 
 	WriteComm(0x28);//Display off	
 	WriteComm(0x10);//Sleep in	
-	Delay(120);
+	Delay(20);
 
 	gpio_pin_set(gpio_lcd, EN, 0);
 	gpio_pin_set(gpio_lcd, VBAT, 0);
@@ -391,7 +389,7 @@ void LCD_SleepOut(void)
 	Delay(10);
 	
 	WriteComm(0x11);//Sleep out	
-	Delay(120);     
+	Delay(20);     
 	WriteComm(0x29);//Display on
 	
 	lcd_is_sleeping = false;
@@ -493,9 +491,10 @@ void LCD_Init(void)
 	
 	WriteComm(0x53);
 	WriteData(0x20);
-	
+
+	//Brightness 00h~FFh
 	WriteComm(0x51);
-	WriteData(0xFF);
+	WriteData(0x40+(0xff-0x40)*global_settings.backlight_level/BACKLIGHT_LEVEL_MAX);
 
 	//Column Address Set
 	WriteComm(0x2A);     

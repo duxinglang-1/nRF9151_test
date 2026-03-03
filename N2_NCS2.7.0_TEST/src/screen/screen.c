@@ -4344,7 +4344,7 @@ void NotifyShowStrings(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16
 void NotifyUpdate(void)
 {
 	uint16_t x,y,w=0,h=0;
-	uint16_t offset_w=4,offset_h=4;
+	uint16_t offset_w=8,offset_h=8;
 
 	switch(notify_msg.align)
 	{
@@ -4356,7 +4356,12 @@ void NotifyUpdate(void)
 		#ifdef CONFIG_ANIMATION_SUPPORT
 			AnimaStop();
 		#endif
+
+		#ifdef LCD_EQTAC175T1371_CO5300
+			LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-2, (notify_msg.h*2)/3-2, BLACK);
+		#else
 			LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-4, (notify_msg.h*2)/3-4, BLACK);
+		#endif
 			
 			if(notify_msg.img != NULL && notify_msg.img_count > 0)
 			{	
@@ -4367,16 +4372,17 @@ void NotifyUpdate(void)
 				LCD_ShowImage(notify_msg.x+(notify_msg.w-w)/2, notify_msg.y+(notify_msg.h-h)/2, notify_msg.img[0]);
 			#endif
 			}
-
-			str_y = notify_msg.y+(notify_msg.h*2/3);
-			str_h = notify_msg.h*1/3;
 		}
 		
 		if(scr_msg[SCREEN_ID_NOTIFY].para&SCREEN_EVENT_UPDATE_POP_STR)
 		{
 			scr_msg[SCREEN_ID_NOTIFY].para &= (~SCREEN_EVENT_UPDATE_POP_STR);
-			
-			LCD_Fill(notify_msg.x+2, (notify_msg.h*2)/3+2, notify_msg.w-4, (notify_msg.h*1)/3-4, BLACK);
+
+		#ifdef LCD_EQTAC175T1371_CO5300
+			LCD_Fill(notify_msg.x+2, str_y+2, notify_msg.w-2, str_h-2, BLACK);
+		#else
+			LCD_Fill(notify_msg.x+2, str_y+2, notify_msg.w-4, str_h-4, BLACK);
+		#endif
 			LCD_MeasureUniString(notify_msg.text, &w, &h);
 			if(w > (str_w-2*offset_w))
 			{
@@ -4459,6 +4465,12 @@ void NotifyUpdate(void)
 		break;
 		
 	case NOTIFY_ALIGN_BOUNDARY:
+	#ifdef LCD_EQTAC175T1371_CO5300
+		LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-2, (notify_msg.h*2)/3-2, BLACK);
+	#else
+		LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-4, (notify_msg.h*2)/3-4, BLACK);
+	#endif
+
 	#ifdef LANGUAGE_AR_ENABLE	
 		if(g_language_r2l)
 			LCD_ShowUniStringRtoLInRect(notify_msg.x+notify_msg.w-offset_w, notify_msg.y+offset_h, (notify_msg.w-2*offset_w), (notify_msg.h-2*offset_h), notify_msg.text);
@@ -4472,7 +4484,7 @@ void NotifyUpdate(void)
 void NotifyShow(void)
 {
 	uint16_t x,y,w=0,h=0;
-	uint16_t offset_w=4,offset_h=4;
+	uint16_t offset_w=8,offset_h=8;
 
 	if(((notify_msg.img == NULL) || (notify_msg.img_count == 0)) 
 		&& ((notify_msg.x != 0)&&(notify_msg.y != 0)&&((notify_msg.w != LCD_WIDTH))&&(notify_msg.h != LCD_HEIGHT)))
@@ -4480,29 +4492,33 @@ void NotifyShow(void)
 		LCD_DrawRectangle(notify_msg.x, notify_msg.y, notify_msg.w, notify_msg.h);
 	}
 
+#ifdef LCD_EQTAC175T1371_CO5300
+	LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-2, notify_msg.h-2, BLACK);
+#else
 	LCD_Fill(notify_msg.x+2, notify_msg.y+2, notify_msg.w-4, notify_msg.h-4, BLACK);
+#endif
+
+	str_x = notify_msg.x;
+	str_y = notify_msg.y;
+	str_w = notify_msg.w;
+	str_h = notify_msg.h;
+		
+	if(notify_msg.img != NULL && notify_msg.img_count > 0)
+	{	
+		LCD_MeasureImage(notify_msg.img[0], &w, &h);
+	#ifdef CONFIG_ANIMATION_SUPPORT
+		AnimaShow(notify_msg.x+(notify_msg.w-w)/2, notify_msg.y+(notify_msg.h-h)/2, notify_msg.img, notify_msg.img_count, 500, true, NULL);
+	#else
+		LCD_ShowImage(notify_msg.x+(notify_msg.w-w)/2, notify_msg.y+(notify_msg.h-h)/2, notify_msg.img[0]);
+	#endif
+
+		str_y = notify_msg.y+(notify_msg.h*2/3);
+		str_h = notify_msg.h*1/3;
+	}
 
 	switch(notify_msg.align)
 	{
 	case NOTIFY_ALIGN_CENTER:
-		str_x = notify_msg.x;
-		str_y = notify_msg.y;
-		str_w = notify_msg.w;
-		str_h = notify_msg.h;
-			
-		if(notify_msg.img != NULL && notify_msg.img_count > 0)
-		{	
-			LCD_MeasureImage(notify_msg.img[0], &w, &h);
-		#ifdef CONFIG_ANIMATION_SUPPORT
-			AnimaShow(notify_msg.x+(notify_msg.w-w)/2, notify_msg.y+(notify_msg.h-h)/2, notify_msg.img, notify_msg.img_count, 500, true, NULL);
-		#else
-			LCD_ShowImage(notify_msg.x+(notify_msg.w-w)/2, notify_msg.y+(notify_msg.h-h)/2, notify_msg.img[0]);
-		#endif
-
-			str_y = notify_msg.y+(notify_msg.h*2/3);
-			str_h = notify_msg.h*1/3;
-		}
-
 		LCD_MeasureUniString(notify_msg.text, &w, &h);
 		if(w > (str_w-2*offset_w))
 		{
@@ -4586,10 +4602,10 @@ void NotifyShow(void)
 	case NOTIFY_ALIGN_BOUNDARY:
 	#ifdef LANGUAGE_AR_ENABLE	
 		if(g_language_r2l)
-			LCD_ShowUniStringRtoLInRect(notify_msg.x+notify_msg.w-offset_w, notify_msg.y+offset_h, (notify_msg.w-2*offset_w), (notify_msg.h-2*offset_h), notify_msg.text);
+			LCD_ShowUniStringRtoLInRect(notify_msg.x+notify_msg.w-offset_w, str_y+offset_h, (notify_msg.w-2*offset_w), (str_h-2*offset_h), notify_msg.text);
 		else
 	#endif		
-			LCD_ShowUniStringInRect(notify_msg.x+offset_w, notify_msg.y+offset_h, (notify_msg.w-2*offset_w), (notify_msg.h-2*offset_h), notify_msg.text);
+			LCD_ShowUniStringInRect(notify_msg.x+offset_w, str_y+offset_h, (notify_msg.w-2*offset_w), (str_h-2*offset_h), notify_msg.text);
 		break;
 	}
 }
@@ -5493,9 +5509,9 @@ void FallShowStatus(void)
 {
 	LCD_Clear(BLACK);
 
-	LCD_ShowImg_From_Flash(FALL_ICON_X, FALL_ICON_Y, IMG_FALL_ICON_ADDR);
-	LCD_ShowImg_From_Flash(FALL_YES_X, FALL_YES_Y, IMG_FALL_YES_ADDR);
-	LCD_ShowImg_From_Flash(FALL_NO_X, FALL_NO_Y, IMG_FALL_NO_ADDR);
+	LCD_ShowImage(FALL_ICON_X, FALL_ICON_Y, IMG_ID_FALL_ICON);
+	LCD_ShowImage(FALL_YES_X, FALL_YES_Y, IMG_ID_FALL_YES);
+	LCD_ShowImage(FALL_NO_X, FALL_NO_Y, IMG_ID_FALL_NO);
 
 	FallChangrStatus();
 
@@ -7293,7 +7309,7 @@ void SOSUpdateStatus(void)
 		AnimaStop();
 	#endif
 
-		LCD_ShowImg_From_Flash(SOS_ICON_X, SOS_ICON_Y, IMG_SOS_ANI_4_ADDR);
+		LCD_ShowImage(SOS_ICON_X, SOS_ICON_Y, IMG_ID_SOS_ANI_3);
 		sos_state = SOS_STATUS_RECEIVED;
 		break;
 	
@@ -7307,7 +7323,7 @@ void SOSUpdateStatus(void)
 
 void SOSShowStatus(void)
 {
-	uint32_t img_anima[4] = {IMG_SOS_ANI_1_ADDR,IMG_SOS_ANI_2_ADDR,IMG_SOS_ANI_3_ADDR,IMG_SOS_ANI_4_ADDR};
+	uint32_t img_anima[4] = {IMG_ID_SOS_ANI_0,IMG_ID_SOS_ANI_1,IMG_ID_SOS_ANI_2,IMG_ID_SOS_ANI_3};
 	
 	LCD_Clear(BLACK);
 

@@ -337,10 +337,10 @@ extern "C" {
 #define HR_STR_H					70
 #define HR_STR_X					((LCD_WIDTH-HR_STR_W)/2)
 #define HR_STR_Y					250
-#define HR_UNIT_W					45
-#define HR_UNIT_H					22
+#define HR_UNIT_W					54
+#define HR_UNIT_H					25
 #define HR_UNIT_X					146
-#define HR_UNIT_Y					152
+#define HR_UNIT_Y					292
 #define HR_BG_W						LCD_WIDTH
 #define HR_BG_H						180
 #define HR_BG_X						((LCD_WIDTH-HR_BG_W)/2)

@@ -2005,6 +2005,9 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 		}
 		else if((ptr1 = strstr(ptr, COM_PPG_GET_DATA)) != NULL)
 		{
+			if(ppg_power_flag == 0)
+				return;
+			
 			ptr1 += strlen(COM_PPG_GET_DATA);
 			PPGDataProcess(ptr1, data_len-(ptr1-data));
 		}

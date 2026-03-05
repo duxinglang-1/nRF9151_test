@@ -473,6 +473,12 @@ void StartTemp(TEMP_TRIGGER_SOUCE trigger_type)
 	g_temp_body = 0.0;
 	get_temp_ok_flag = false;
 
+	measure_count = 0;
+	t_sensor = 0.0;
+	t_body = 0.0;
+	t_predict = 0.0;
+	t_temp80 = 0.0;
+
 	temp_start_flag = true;
 }
 

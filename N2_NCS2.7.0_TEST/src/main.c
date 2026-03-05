@@ -310,11 +310,7 @@ void test_notify(void)
 											{0x5B9A,0x65F6,0x6D4B,0x91CF,0x5373,0x5C06,0x5F00,0x59CB,0xFF0C,0x672C,0x6B21,0x6D4B,0x91CF,0x7ED3,0x675F,0xFF01,0x0000},//定时测量即将开始，本次测量结束！
 										};
 
-#ifdef FONTMAKER_UNICODE_FONT
 	LCD_SetFontSize(FONT_SIZE_20);
-#else		
-	LCD_SetFontSize(FONT_SIZE_16);
-#endif
 	
 	infor.x = 0;
 	infor.y = 0;

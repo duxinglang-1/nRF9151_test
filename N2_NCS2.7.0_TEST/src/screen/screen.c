@@ -1094,7 +1094,7 @@ void IdleScreenProcess(void)
 		IdleShowBatSoc();
 		IdleShowDateTime();
 	#ifdef CONFIG_BLE_SUPPORT	
-		IdleShowBleStatus();
+		//IdleShowBleStatus();
 	#endif	
 	#ifdef CONFIG_PPG_SUPPORT
 		IdleShowHrData();
@@ -2762,7 +2762,7 @@ void TempUpdateStatus(void)
 	case TEMP_STATUS_PREPARE:
 		LCD_Fill(TEMP_NOTIFY_X, TEMP_NOTIFY_Y, TEMP_NOTIFY_W, TEMP_NOTIFY_H, BLACK);
 		
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -2782,7 +2782,7 @@ void TempUpdateStatus(void)
 			img_flag = 0;
 		LCD_ShowImage(TEMP_ICON_X, TEMP_ICON_Y, img_anima[img_flag]);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		if(get_temp_ok_flag)
 		{
@@ -2867,7 +2867,7 @@ void TempUpdateStatus(void)
 		LCD_Fill(TEMP_NOTIFY_X, TEMP_NOTIFY_Y, TEMP_NOTIFY_W, TEMP_NOTIFY_H, BLACK);
 		LCD_ShowImage(TEMP_ICON_X, TEMP_ICON_Y, IMG_ID_TEMP_ANI_3);
 		
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		temp_retry_left--;
 		if(temp_retry_left == 0)
@@ -2894,7 +2894,7 @@ void TempUpdateStatus(void)
 		LCD_Fill(TEMP_NOTIFY_X, TEMP_NOTIFY_Y, TEMP_NOTIFY_W, TEMP_NOTIFY_H, BLACK);
 		LCD_ShowImage(TEMP_ICON_X, TEMP_ICON_Y, IMG_ID_TEMP_ANI_3);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL_AND_RETRY, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -2919,7 +2919,7 @@ void TempShowStatus(void)
 	LCD_ShowImage(TEMP_UP_ARRAW_X, TEMP_UP_ARRAW_Y, IMG_ID_TEMP_MAX_REC);
 	LCD_ShowImage(TEMP_DOWN_ARRAW_X, TEMP_DOWN_ARRAW_Y, IMG_ID_TEMP_MIN_REC);
 
-	LCD_SetFontSize(FONT_SIZE_52);
+	LCD_SetFontSize(FONT_SIZE_36);
 
 	LCD_MeasureUniStr(STR_ID_BODY_TEMP, &w, &h);
 #ifdef LANGUAGE_AR_ENABLE	
@@ -3347,7 +3347,7 @@ void BPUpdateStatus(void)
 	case PPG_STATUS_PREPARE:
 		LCD_Fill(BP_NOTIFY_X, BP_NOTIFY_Y, BP_NOTIFY_W, BP_NOTIFY_H, BLACK);
 		
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -3367,7 +3367,7 @@ void BPUpdateStatus(void)
 			img_index = 0;
 		LCD_ShowImage(BP_ICON_X, BP_ICON_Y, img_anima[img_index]);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		if(get_bpt_ok_flag)
 		{
@@ -3447,7 +3447,7 @@ void BPUpdateStatus(void)
 		LCD_Fill(BP_NOTIFY_X, BP_NOTIFY_Y, BP_NOTIFY_W, BP_NOTIFY_H, BLACK);
 		LCD_ShowImg_From_Flash(BP_ICON_X, BP_ICON_Y, IMG_ID_BPT_ANI_3);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		ppg_retry_left--;
 		if(ppg_retry_left == 0)
@@ -3474,7 +3474,7 @@ void BPUpdateStatus(void)
 		LCD_Fill(BP_NOTIFY_X, BP_NOTIFY_Y, BP_NOTIFY_W, BP_NOTIFY_H, BLACK);
 		LCD_ShowImage(BP_ICON_X, BP_ICON_Y, IMG_ID_BPT_ANI_3);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL_AND_RETRY, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -3499,7 +3499,7 @@ void BPShowStatus(void)
 	LCD_ShowImage(BP_UP_ARRAW_X, BP_UP_ARRAW_Y, IMG_ID_BPT_MAX_REC);
 	LCD_ShowImage(BP_DOWN_ARRAW_X, BP_DOWN_ARRAW_Y, IMG_ID_BPT_MIN_REC);
 
-	LCD_SetFontSize(FONT_SIZE_52);
+	LCD_SetFontSize(FONT_SIZE_36);
 
 	LCD_MeasureUniStr(STR_ID_BPT, &w, &h);
 #ifdef LANGUAGE_AR_ENABLE	
@@ -3648,7 +3648,7 @@ void SPO2UpdateStatus(void)
 	case PPG_STATUS_PREPARE:
 		LCD_Fill(SPO2_NOTIFY_X, SPO2_NOTIFY_Y, SPO2_NOTIFY_W, SPO2_NOTIFY_H, BLACK);
 		
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -3668,7 +3668,7 @@ void SPO2UpdateStatus(void)
 			img_index = 0;
 		LCD_ShowImage(SPO2_ICON_X, SPO2_ICON_Y, img_anima[img_index]);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		if(get_spo2_ok_flag)
 		{
@@ -3714,7 +3714,7 @@ void SPO2UpdateStatus(void)
 		LCD_Fill(SPO2_NOTIFY_X, SPO2_NOTIFY_Y, SPO2_NOTIFY_W, SPO2_NOTIFY_H, BLACK);
 		LCD_ShowImage(SPO2_ICON_X, SPO2_ICON_Y, IMG_ID_SPO2_ANI_3);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		ppg_retry_left--;
 		if(ppg_retry_left == 0)
@@ -3741,7 +3741,7 @@ void SPO2UpdateStatus(void)
 		LCD_Fill(SPO2_NOTIFY_X, SPO2_NOTIFY_Y, SPO2_NOTIFY_W, SPO2_NOTIFY_H, BLACK);
 		LCD_ShowImage(SPO2_ICON_X, SPO2_ICON_Y, IMG_ID_SPO2_ANI_3);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 	
 		LCD_MeasureUniStr(STR_ID_STAY_STILL_AND_RETRY, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -3766,7 +3766,7 @@ void SPO2ShowStatus(void)
 	LCD_ShowImage(SPO2_UP_ARRAW_X, SPO2_UP_ARRAW_Y, IMG_ID_SPO2_MAX_REC);
 	LCD_ShowImage(SPO2_DOWN_ARRAW_X, SPO2_DOWN_ARRAW_Y, IMG_ID_SPO2_MIN_REC);
 
-	LCD_SetFontSize(FONT_SIZE_52);
+	LCD_SetFontSize(FONT_SIZE_36);
 
 	LCD_MeasureUniStr(STR_ID_SPO2, &w, &h);
 #ifdef LANGUAGE_AR_ENABLE	
@@ -3911,7 +3911,7 @@ void HRUpdateStatus(void)
 	case PPG_STATUS_PREPARE:
 		LCD_Fill(HR_NOTIFY_X, HR_NOTIFY_Y, HR_NOTIFY_W, HR_NOTIFY_H, BLACK);
 		
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -3931,7 +3931,7 @@ void HRUpdateStatus(void)
 			img_index = 0;
 		LCD_ShowImage(HR_ICON_X, HR_ICON_Y, img_anima[img_index]);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		if(get_hr_ok_flag)
 		{
@@ -3978,7 +3978,7 @@ void HRUpdateStatus(void)
 		LCD_Fill(HR_NOTIFY_X, HR_NOTIFY_Y, HR_NOTIFY_W, HR_NOTIFY_H, BLACK);
 		LCD_ShowImage(HR_ICON_X, HR_ICON_Y, IMG_HR_BIG_ICON_2_ADDR);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		ppg_retry_left--;
 		if(ppg_retry_left == 0)
@@ -4005,7 +4005,7 @@ void HRUpdateStatus(void)
 		LCD_Fill(HR_NOTIFY_X, HR_NOTIFY_Y, HR_NOTIFY_W, HR_NOTIFY_H, BLACK);
 		LCD_ShowImage(HR_ICON_X, HR_ICON_Y, IMG_HR_BIG_ICON_2_ADDR);
 
-		LCD_SetFontSize(FONT_SIZE_52);
+		LCD_SetFontSize(FONT_SIZE_36);
 
 		LCD_MeasureUniStr(STR_ID_STAY_STILL_AND_RETRY, &w, &h);
 	#ifdef LANGUAGE_AR_ENABLE	
@@ -4032,7 +4032,7 @@ void HRShowStatus(void)
 	LCD_ShowImage(HR_UP_ARRAW_X, HR_UP_ARRAW_Y, IMG_ID_HR_MAX_REC);
 	LCD_ShowImage(HR_DOWN_ARRAW_X, HR_DOWN_ARRAW_Y, IMG_ID_HR_MIN_REC);
 
-	LCD_SetFontSize(FONT_SIZE_52);
+	LCD_SetFontSize(FONT_SIZE_36);
 
 	LCD_MeasureUniStr(STR_ID_HR,&w,&h);
 #ifdef LANGUAGE_AR_ENABLE	
@@ -7533,7 +7533,7 @@ void MainMenuScreenProcess(void)
 		IdleShowNetMode();
 		IdleShowBatSoc();
 	#ifdef CONFIG_BLE_SUPPORT	
-		IdleShowBleStatus();
+		//IdleShowBleStatus();
 	#endif
 		MainMenuShowStatus();
 		break;

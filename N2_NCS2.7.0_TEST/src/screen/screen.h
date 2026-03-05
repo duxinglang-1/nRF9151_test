@@ -68,10 +68,10 @@ extern "C" {
 #define IDLE_WEEK_CN_Y			230
 
 //ble
-#define IDLE_BLE_W		50
-#define IDLE_BLE_H		30
-#define IDLE_BLE_X		((LCD_WIDTH-IDLE_BLE_W)/2)
-#define IDLE_BLE_Y		4
+#define IDLE_BLE_W		30
+#define IDLE_BLE_H		20
+#define IDLE_BLE_X		232
+#define IDLE_BLE_Y		30
 
 //network mode
 #define IDLE_NET_MODE_W		12
@@ -483,10 +483,10 @@ extern "C" {
 #define TEMP_STR_H					70
 #define TEMP_STR_X					((LCD_WIDTH-TEMP_STR_W)/2)
 #define TEMP_STR_Y					250
-#define TEMP_UNIT_W					23
-#define TEMP_UNIT_H					38
-#define TEMP_UNIT_X					152
-#define TEMP_UNIT_Y					136
+#define TEMP_UNIT_W					41
+#define TEMP_UNIT_H					70
+#define TEMP_UNIT_X					238
+#define TEMP_UNIT_Y					252
 #define TEMP_BG_W					192
 #define TEMP_BG_H					85
 #define TEMP_BG_X					((LCD_WIDTH-TEMP_BG_W)/2)

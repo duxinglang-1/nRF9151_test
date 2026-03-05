@@ -2035,8 +2035,8 @@ void UartPPGEventHandle(uint8_t *data, uint32_t data_len)
 				LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
 				LCD_SleepOut();
 				
-				infor.w = 200;
-				infor.h = 120;
+				infor.w = 310;
+				infor.h = 210;
 				infor.x = (LCD_WIDTH-infor.w)/2;
 				infor.y = (LCD_HEIGHT-infor.h)/2;
 				infor.align = NOTIFY_ALIGN_CENTER;

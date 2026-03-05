@@ -15,22 +15,21 @@
 extern "C" {
 #endif
 
-#define FALL_ICON_W			100
-#define FALL_ICON_H			104
+#define FALL_ICON_W			174
+#define FALL_ICON_H			180
 #define FALL_ICON_X			((LCD_WIDTH-FALL_ICON_W)/2)
-#define FALL_ICON_Y			20
-#define FALL_YES_W			60
-#define FALL_YES_H			60
-#define FALL_YES_X			45
-#define FALL_YES_Y			145
-#define FALL_NO_W			60
-#define FALL_NO_H			60
-#define FALL_NO_X			135
-#define FALL_NO_Y			145
+#define FALL_ICON_Y			82
+#define FALL_YES_W			94
+#define FALL_YES_H			94
+#define FALL_YES_X			62
+#define FALL_YES_Y			298
+#define FALL_NO_W			94
+#define FALL_NO_H			94
+#define FALL_NO_X			236
+#define FALL_NO_Y			298
 
-
-#define FALL_NOTIFY_RECT_W	180
-#define FALL_NOTIFY_RECT_H	120
+#define FALL_NOTIFY_RECT_W	310
+#define FALL_NOTIFY_RECT_H	210
 #define FALL_NOTIFY_RECT_X	((LCD_WIDTH-FALL_NOTIFY_RECT_W)/2)
 #define FALL_NOTIFY_RECT_Y	((LCD_HEIGHT-FALL_NOTIFY_RECT_H)/2)
 

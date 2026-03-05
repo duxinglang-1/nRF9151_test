@@ -341,8 +341,8 @@ void FallRecLocatNotify(uint8_t *strmsg)
 
 		LCD_SetFontSize(FONT_SIZE_20);
 
-		infor.w = 200;
-		infor.h = 120;
+		infor.w = 310;
+		infor.h = 210;
 		infor.x = (LCD_WIDTH-infor.w)/2;
 		infor.y = (LCD_HEIGHT-infor.h)/2;
 

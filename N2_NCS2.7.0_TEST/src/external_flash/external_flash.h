@@ -35,7 +35,9 @@
 #define FLASH_MISO_PIN		(12)
 
 //W25Q64 ID
-#define	W25Q64_ID	0XEF16
+#define	W25Q64DW_ID		0xEF16
+#define	W25Q128JW_ID	0xEF17
+
 
 //SPI Flash命令定义
 #define	SPIFlash_WriteEnable	0x06  //写使能命令

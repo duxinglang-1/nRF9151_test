@@ -304,9 +304,9 @@ bool CW_I2C_Init(void)
 	i2c_pmu = DEVICE_DT_GET(PMU_DEV);
 	if(!i2c_pmu)
 	{
-#ifdef PMU_DEBUG
+	#ifdef PMU_DEBUG
 		LOGD("ERROR SETTING UP I2C");
-#endif
+	#endif
 		return false;
 	} 
 	else
@@ -462,6 +462,7 @@ int CW6307_ReadRegMulti(CW2215_REG reg, uint8_t *value, uint8_t len)
 #ifndef GPIO_ACT_I2C
 void test_i2c(void)
 {
+#if 0
 	struct device *i2c_dev;
 
 	LOGD("Starting i2c scanner...");
@@ -501,6 +502,7 @@ void test_i2c(void)
 			//LOGD("error %d", error);
 		}
 	}
+#endif
 }
 #endif
 

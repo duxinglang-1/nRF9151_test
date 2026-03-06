@@ -24,6 +24,8 @@
 #endif
 #include "inner_flash.h"
 
+//#define BLE_DEBUG
+
 bool ble_is_on = true;
 bool g_ble_connected = false;
 
@@ -53,7 +55,7 @@ static void GetBLEInfoCallBack(struct k_timer *timer_id)
 
 void ble_connect_or_disconnect_handle(uint8_t *buf, uint32_t len)
 {
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("BLE status:%x", buf[6]);
 #endif
 
@@ -72,7 +74,7 @@ void APP_reply_find_phone(uint8_t *buf, uint32_t len)
 {
 	uint32_t i;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 }
@@ -82,7 +84,7 @@ void APP_set_find_device(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG	
+#ifdef BLE_DEBUG	
 	LOGD("begin");
 #endif
 
@@ -117,7 +119,7 @@ void APP_set_language(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -166,7 +168,7 @@ void APP_set_time_24_format(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -214,7 +216,7 @@ void APP_set_date_format(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -264,7 +266,7 @@ void APP_set_date_time(uint8_t *buf, uint32_t len)
 	uint32_t i,reply_len = 0;
 	sys_date_timer_t datetime = {0};
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -318,7 +320,7 @@ void APP_set_alarm(uint8_t *buf, uint32_t len)
 	uint32_t i,index,reply_len = 0;
 	alarm_infor_t infor = {0};
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -367,7 +369,7 @@ void APP_set_PHD_interval(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("flag:%d, interval:%d", buf[6], buf[7]);
 #endif
 
@@ -404,7 +406,7 @@ void APP_set_wake_screen_by_wrist(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("flag:%d", buf[6]);
 #endif
 
@@ -443,7 +445,7 @@ void APP_set_factory_reset(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -477,7 +479,7 @@ void APP_set_target_steps(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("steps:%d", buf[7]*100+buf[8]);
 #endif
 
@@ -514,7 +516,7 @@ void APP_get_one_key_measure_data(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("setting:%d", buf[6]);
 #endif
 
@@ -599,19 +601,19 @@ void MCU_reply_cur_hour_ppg(sys_date_timer_t time, PPG_DATA_TYPE type, uint8_t *
 	switch(type)
 	{
 	case PPG_DATA_HR://hr
-	#ifdef UART_DEBUG
+	#ifdef BLE_DEBUG
 		LOGD("hr:%d", data[0]);
 	#endif
 		reply[reply_len++] = data[0];
 		break;
 	case PPG_DATA_SPO2://spo2
-	#ifdef UART_DEBUG
+	#ifdef BLE_DEBUG
 		LOGD("spo2:%d", data[0]);
 	#endif
 		reply[reply_len++] = data[0];
 		break;
 	case PPG_DATA_BPT://bpt
-	#ifdef UART_DEBUG
+	#ifdef BLE_DEBUG
 		LOGD("bpt:%d\\%d", data[0],data[1]);
 	#endif
 		reply[reply_len++] = data[0];
@@ -657,7 +659,7 @@ void MCU_reply_cur_hour_temp(sys_date_timer_t time, uint8_t *data)
 	//minute
 	reply[reply_len++] = time.minute;
 	//data
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("temp:%d.%d", (256*data[0]+data[1])/10, (256*data[0]+data[1])%10);
 #endif
 	reply[reply_len++] = data[0];
@@ -680,7 +682,7 @@ void APP_get_cur_hour_health(sys_date_timer_t ask_time)
 	uint16_t temp = 0;
 	uint8_t data[2] = {0};
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -709,7 +711,7 @@ void APP_get_cur_hour_sport(sys_date_timer_t ask_time)
 	uint16_t light_sleep=0,deep_sleep=0;	
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -766,7 +768,7 @@ void APP_get_cur_hour_sport(sys_date_timer_t ask_time)
 
 void APP_get_cur_hour_data(uint8_t *buf, uint32_t len)
 {
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("%04d/%02d/%02d %02d:%02d", 2000 + buf[7],buf[8],buf[9],buf[10],buf[11]);
 #endif
 
@@ -781,7 +783,7 @@ void APP_get_cur_hour_data(uint8_t *buf, uint32_t len)
 
 void APP_get_location_data(uint8_t *buf, uint32_t len)
 {
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -889,7 +891,7 @@ void APP_get_battery_level(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -933,7 +935,7 @@ void APP_get_firmware_version(uint8_t *buf, uint32_t len)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -968,7 +970,7 @@ void APP_get_hr(uint8_t *buf, uint32_t len)
 	uint8_t heart_rate,reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("type:%d, flag:%d", buf[5], buf[6]);
 #endif
 
@@ -1029,7 +1031,7 @@ void APP_get_spo2(uint8_t *buf, uint32_t len)
 	uint8_t heart_rate,reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("type:%d, flag:%d", buf[5], buf[6]);
 #endif
 
@@ -1090,7 +1092,7 @@ void APP_get_bpt(uint8_t *buf, uint32_t len)
 	uint8_t heart_rate,reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("type:%d, flag:%d", buf[5], buf[6]);
 #endif
 
@@ -1156,7 +1158,7 @@ void APP_get_temp(uint8_t *buf, uint32_t len)
 	uint8_t heart_rate,reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("type:%d, flag:%d", buf[5], buf[6]);
 #endif
 
@@ -1225,7 +1227,7 @@ void get_nrf52810_ver_response(uint8_t *buf, uint32_t len)
 		g_nrf52810_ver[i] = buf[7+i];
 	}
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("nrf52810_ver:%s", g_nrf52810_ver);
 #endif
 }
@@ -1235,7 +1237,7 @@ void MCU_get_ble_status(void)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1268,7 +1270,7 @@ void MCU_send_find_phone(void)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1304,7 +1306,7 @@ void MCU_send_app_one_key_measure_data(void)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1346,7 +1348,7 @@ void MCU_send_app_get_ppg_data(PPG_DATA_TYPE flag, uint8_t *data)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1404,7 +1406,7 @@ void MCU_send_app_get_temp_data(uint8_t *data)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1436,7 +1438,7 @@ void MCU_send_app_get_temp_data(uint8_t *data)
 
 void nrf52810_report_work_mode(uint8_t *buf, uint32_t len)
 {
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("mode:%d", buf[5]);
 #endif
 
@@ -1457,7 +1459,7 @@ void nrf52810_report_work_mode(uint8_t *buf, uint32_t len)
 
 void get_ble_status_response(uint8_t *buf, uint32_t len)
 {
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("BLE_status:%d", buf[7]);
 #endif
 
@@ -1487,7 +1489,7 @@ void get_ble_ver_response(uint8_t *buf, uint32_t len)
 		g_ble_app_ver[i] = buf[7+i];
 	}
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("g_ble_app_ver:%s", g_ble_app_ver);
 #endif
 }
@@ -1507,7 +1509,7 @@ void get_ble_mac_address_response(uint8_t *buf, uint32_t len)
 							mac_addr[3],
 							mac_addr[4],
 							mac_addr[5]);
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("ble_mac_addr:%s", g_ble_mac_addr);
 #endif
 }
@@ -1517,7 +1519,7 @@ void MCU_get_nrf52810_ver(void)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1549,7 +1551,7 @@ void MCU_get_ble_mac_address(void)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1582,7 +1584,7 @@ void MCU_set_ble_work_mode(ENUM_BLE_MODE work_mode)
 	uint8_t reply[128] = {0};
 	uint32_t i,reply_len = 0;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	LOGD("begin");
 #endif
 
@@ -1643,13 +1645,13 @@ void ble_receive_data_handle(uint8_t *buf, uint32_t len)
 	uint16_t data_len,data_ID;
 	uint32_t i;
 
-#ifdef UART_DEBUG
+#ifdef BLE_DEBUG
 	//LOGD("receive:%s", buf);
 #endif
 
 	if((buf[0] != PACKET_HEAD) || (buf[len-1] != PACKET_END))	//format is error
 	{
-	#ifdef UART_DEBUG
+	#ifdef BLE_DEBUG
 		LOGD("format is error! HEAD:%x, END:%x", buf[0], buf[len-1]);
 	#endif
 		return;
@@ -1660,7 +1662,7 @@ void ble_receive_data_handle(uint8_t *buf, uint32_t len)
 
 	if(CRC_data != buf[len-2])									//crc is error
 	{
-	#ifdef UART_DEBUG
+	#ifdef BLE_DEBUG
 		LOGD("CRC is error! data:%x, CRC:%x", buf[len-2], CRC_data);
 	#endif
 		return;
@@ -1774,7 +1776,7 @@ void ble_receive_data_handle(uint8_t *buf, uint32_t len)
 		get_ble_mac_address_response(buf, len);
 		break;
 	default:
-	#ifdef UART_DEBUG	
+	#ifdef BLE_DEBUG	
 		LOGD("data_id is unknown!");
 	#endif
 		break;

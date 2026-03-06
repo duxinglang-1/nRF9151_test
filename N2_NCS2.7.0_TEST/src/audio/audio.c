@@ -80,8 +80,6 @@ void SOSPlayAlarm(void)
 	uint8_t buffer[64] = {0};
 	uint32_t len;
 
-	LOGD("begin");
-	
 	strcpy(buffer, COM_AUDIO_PLAY);
 	len = strlen(COM_AUDIO_PLAY);
 	memcpy(&buffer[len], &sound_id, sizeof(sound_id));

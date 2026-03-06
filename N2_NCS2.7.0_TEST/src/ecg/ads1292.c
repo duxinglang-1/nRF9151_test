@@ -12,7 +12,7 @@
 #include "ads1292.h"
 #include "logger.h"
 
-#define ADS_DEBUG
+//#define ADS_DEBUG
 
 struct device *spi_ecg;
 struct device *gpio_ecg;

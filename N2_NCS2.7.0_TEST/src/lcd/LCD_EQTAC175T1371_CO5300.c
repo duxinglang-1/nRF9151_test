@@ -67,7 +67,7 @@ static void LCD_SPI_Init(void)
 	spi_cs_ctr.gpio_dev = DEVICE_DT_GET(LCD_PORT);
 	if (!spi_cs_ctr.gpio_dev)
 	{
-		LOGD("Unable to get GPIO SPI CS device");
+		//LOGD("Unable to get GPIO SPI CS device");
 		return;
 	}
 
@@ -98,7 +98,7 @@ static void LCD_SPI_Transceive(uint8_t *txbuf, uint32_t txbuflen, uint8_t *rxbuf
 	err = spi_transceive(spi_lcd, &spi_cfg, &tx_bufs, &rx_bufs);
 	if(err)
 	{
-		LOGD("SPI err: %d", err);
+		//LOGD("SPI err: %d", err);
 	}
 
 #ifdef SPI_MUIT_BY_CS

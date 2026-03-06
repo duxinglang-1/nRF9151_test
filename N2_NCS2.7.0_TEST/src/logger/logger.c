@@ -348,6 +348,6 @@ void LogInit(void)
 		inforbuf.count = 0;
 
 #ifdef TEST_DEBUG
-	log_read_from_flash();
+	//log_read_from_flash();
 #endif	
 }

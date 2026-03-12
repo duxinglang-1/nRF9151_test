@@ -713,7 +713,7 @@ static void gps_data_get_work_fn(struct k_work *item)
 
 				if(test_gps_flag)
 				{
-					uint8_t i,tracked = 0,flag = 0;
+					uint8_t i,tracked = 0,flag = 0,valid_sv = 0;
 					uint8_t strbuf[256] = {0};
 					int32_t lon,lat;
 					
@@ -745,6 +745,9 @@ static void gps_data_get_work_fn(struct k_work *item)
 						  #ifdef CONFIG_FACTORY_TEST_SUPPORT
 							if(IsFTGPSTesting())
 							{
+								if(last_pvt.sv[i].cn0/10 >= 40)
+									valid_sv++;
+								
 								if(flag == 0)
 								{
 									flag = 1;
@@ -781,7 +784,10 @@ static void gps_data_get_work_fn(struct k_work *item)
 					strcat(gps_test_info, strbuf);
 
 				#ifdef CONFIG_FACTORY_TEST_SUPPORT
-					FTGPSStatusUpdate(false);
+					if(valid_sv >= 3)
+						FTGPSStatusUpdate(true);
+					else
+						FTGPSStatusUpdate(false);
 				#endif
 
 					gps_test_update_flag = true;
@@ -1102,12 +1108,12 @@ void MenuStopGPS(void)
 void FTStartGPS(void)
 {
 	test_gps_flag = true;
-	gps_on();
+	gps_on_flag = true;
 }
 
 void FTStopGPS(void)
 {
-	gps_off();
+	gps_off_flag = true;
 }
 #endif
 
@@ -1124,10 +1130,12 @@ void GPSTestInit(void)
 
 void GPSTestUnInit(void)
 {
-#if IS_ENABLED(CONFIG_LTE_NETWORK_MODE_NBIOT_GPS)
+#ifdef CONFIG_LTE_NETWORK_MODE_NBIOT_GPS
 	lte_lc_system_mode_set(LTE_LC_SYSTEM_MODE_NBIOT_GPS, LTE_LC_SYSTEM_MODE_PREFER_AUTO);
-#elif IS_ENABLED(CONFIG_LTE_NETWORK_MODE_LTE_M_GPS)
+#elif defined(CONFIG_LTE_NETWORK_MODE_LTE_M_GPS)
 	lte_lc_system_mode_set(LTE_LC_SYSTEM_MODE_LTEM_GPS, LTE_LC_SYSTEM_MODE_PREFER_AUTO);
+#else
+	lte_lc_system_mode_set(LTE_LC_SYSTEM_MODE_LTEM_NBIOT_GPS, LTE_LC_SYSTEM_MODE_PREFER_AUTO);
 #endif
 }
 

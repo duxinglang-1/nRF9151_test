@@ -936,13 +936,6 @@ void FTStartNet(void)
 {
 	test_nb_on = true;
 }
-
-void FTPreReadyNet(void)
-{
-	struct k_work_sync work_sync;
-
-	//SetModemTurnOff();
-}
 #endif
 
 void NBGetNetMode(uint8_t *at_mode_set)
@@ -2151,7 +2144,7 @@ void receiveToAtWithNb(void)
 			uint8_t cvalue[5] = {0};
 			itoa(dbmint, cvalue, 10);
 			uint8_t lastValue[30] = {0};
-			strcpy(lastValue, "RXpower: -");
+			strcpy(lastValue, "\nRXpower: -");
 			strcat(lastValue, cvalue);
 			strcat(lastValue, " dbm");
 			sprintf(nb_test_info, lastValue);
@@ -2508,7 +2501,7 @@ void DecodeModemMonitor(uint8_t *buf, uint32_t len)
 			if(tmp_rsrp > 0)
 				modem_rsrp_handler(tmp_rsrp);
 
-		#if 0	//xb add 2024-01-02 屏蔽多余的数据解析
+		#if NB_DEBUG	//xb add 2024-01-02 屏蔽多余的数据解析
 			//Active-Time
 			memset(tmpbuf, 0, sizeof(tmpbuf));
 			GetStringInforBySepa(ptr, ",", 14, tmpbuf);

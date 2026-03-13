@@ -14,6 +14,10 @@
 #include <stdio.h>
 #include <math.h>
 #include "datetime.h"
+#ifdef CONFIG_FACTORY_TEST_SUPPORT
+#include "ft_press.h"
+#endif
+
 
 //#define PRESSURE_DEBUG
 
@@ -37,12 +41,15 @@ extern bool pressure_check_ok;
 extern bool pressure_get_ok;
 extern bool pressure_start_flag;
 extern bool pressure_stop_flag;
+extern bool pressure_test_flag;
+extern bool pressure_get_data_flag;
+
 extern bool pressure_interrupt_flag;
 
 extern float g_prs;
 extern float g_tmp;
 
-extern uint8_t press_test_info[256];
+extern uint8_t press_test_info[128];
 extern pressure_ctx_t pressure_dev_ctx;
 
 #endif/*__PRESSURE_H__*/

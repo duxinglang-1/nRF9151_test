@@ -42,6 +42,9 @@ static struct device *i2c_pressure;
 static struct device *gpio_pressure;
 static struct gpio_callback gpio_cb;
 
+static void Press_Get_Data_Callback(struct k_timer *timer_id);
+K_TIMER_DEFINE(press_get_data_timer, Press_Get_Data_Callback, NULL);
+
 static int32_t m_c0,m_c1,m_c00,m_c01,m_c10,m_c11,m_c20,m_c21,m_c30;
 
 uint8_t DPS368_coefs[18] = 
@@ -156,6 +159,11 @@ static int32_t com_scale[8] =
 	1040384,	//0b0110 64 times (High Precision)
 	2088960		//0b0111 128 times
 };
+
+static void Press_Get_Data_Callback(struct k_timer *timer_id)
+{
+	pressure_get_data_flag = true;
+}
 
 void DPS368_Delayms(unsigned int dly)
 {
@@ -862,8 +870,8 @@ void DPS368_CalculatePrs(void)
 	g_prs = Pcomp;
 
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
-	sprintf(press_test_info, "pressure:%f, temp:%f", g_prs, g_tmp);
-	FTPressStatusUpdate(g_prs);
+	sprintf(press_test_info, "Press:%.2f\nTemp:%.2f", g_prs, g_tmp);
+	FTPressStatusUpdate(g_prs, g_tmp);
 #endif
 }
 
@@ -1010,6 +1018,10 @@ bool DPS368_Init(void)
 		{
 			DPS368_Start(dps368_settings.meas_cfg.ctrl);
 		}
+		else
+		{
+			DPS368_Stop();
+		}
 		
 		return true;
 	}
@@ -1062,7 +1074,7 @@ void DPS368_Start(DPS368_MEAS_CTRL work_mode)
 	case MEAS_CONTI_TMP:		// - Continous temperature measurement
 	case MEAS_CONTI_PRS_TMP:	// - Continous pressure and temperature measurement:
 		DPS368_SetConfig();
-		DPS368_SetMeasModeCfg(dps368_settings.meas_cfg.ctrl);
+		DPS368_SetMeasModeCfg(MEAS_CONTI_PRS_TMP);
 		break;
 	}
 }
@@ -1076,14 +1088,28 @@ void DPS368MsgProcess(void)
 {
 	if(pressure_start_flag)
 	{
-		DPS368_Start(MEAS_CMD_PSR);
 		pressure_start_flag = false;
+		if(pressure_test_flag)
+		{
+			DPS368_Start(MEAS_CONTI_PRS);
+			k_timer_start(&press_get_data_timer, K_SECONDS(1), K_SECONDS(1));
+		}
+		else
+		{
+			DPS368_Start(MEAS_CMD_PSR);
+		}
 	}
 
 	if(pressure_stop_flag)
 	{
 		DPS368_Stop();
 		pressure_stop_flag = false;
+		if(pressure_test_flag)
+		{
+			if(k_timer_remaining_get(&press_get_data_timer) > 0)
+				k_timer_stop(&press_get_data_timer);
+			pressure_test_flag = false;
+		}
 	}
 	
 	if(pressure_interrupt_flag)
@@ -1122,6 +1148,15 @@ void DPS368MsgProcess(void)
 		}
 	
 		pressure_interrupt_flag = false;
+	}
+
+	if(pressure_get_data_flag)
+	{
+		DPS368_GetTmpRawData(&DPS368_tmp);
+		DPS368_CalculateTmp();
+		DPS368_GetPrsRawData(&DPS368_prs);
+		DPS368_CalculatePrs();
+		pressure_get_data_flag = false;
 	}
 }
 

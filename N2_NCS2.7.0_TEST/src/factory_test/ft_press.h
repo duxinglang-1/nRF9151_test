@@ -9,5 +9,6 @@
 #ifndef __FT_PPG_H__
 #define __FT_PPG_H__
 
+extern void FTPressStatusUpdate(float prs, float temp);
 
 #endif/*__FT_PPG_H__*/

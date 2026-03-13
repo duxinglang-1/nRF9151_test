@@ -31,24 +31,24 @@
 #define FT_PRESS_MENU_STR_Y			80
 #define FT_PRESS_MENU_STR_OFFSET_Y	5
 
-#define FT_PRESS_SLE1_STR_W			70
-#define FT_PRESS_SLE1_STR_H			30
-#define FT_PRESS_SLE1_STR_X			40
-#define FT_PRESS_SLE1_STR_Y			170
-#define FT_PRESS_SLE2_STR_W			70
-#define FT_PRESS_SLE2_STR_H			30
-#define FT_PRESS_SLE2_STR_X			130
-#define FT_PRESS_SLE2_STR_Y			170
+#define FT_PRESS_SLE1_STR_W			80
+#define FT_PRESS_SLE1_STR_H			60
+#define FT_PRESS_SLE1_STR_X			90
+#define FT_PRESS_SLE1_STR_Y			310
+#define FT_PRESS_SLE2_STR_W			80
+#define FT_PRESS_SLE2_STR_H			60
+#define FT_PRESS_SLE2_STR_X			200
+#define FT_PRESS_SLE2_STR_Y			310
 
-#define FT_PRESS_RET_STR_W			120
-#define FT_PRESS_RET_STR_H			60
+#define FT_PRESS_RET_STR_W			200
+#define FT_PRESS_RET_STR_H			80
 #define FT_PRESS_RET_STR_X			((LCD_WIDTH-FT_PRESS_RET_STR_W)/2)
 #define FT_PRESS_RET_STR_Y			((LCD_HEIGHT-FT_PRESS_RET_STR_H)/2)
 
-#define FT_PRESS_NOTIFY_W			240
-#define FT_PRESS_NOTIFY_H			40
+#define FT_PRESS_NOTIFY_W			310
+#define FT_PRESS_NOTIFY_H			170
 #define FT_PRESS_NOTIFY_X			((LCD_WIDTH-FT_PRESS_NOTIFY_W)/2)
-#define FT_PRESS_NOTIFY_Y			100
+#define FT_PRESS_NOTIFY_Y			110
 				
 #define FT_PRESS_TEST_TIMEROUT		2*60
 			
@@ -56,7 +56,6 @@ static bool ft_press_check_ok = false;
 static bool ft_press_checking = false;
 static bool update_show_flag = false;
 static uint8_t ft_press_scaned_count = 0;
-static uint8_t ft_press_infor[256] = {0};
 
 static void PressTestTimerOutCallBack(struct k_timer *timer_id);
 K_TIMER_DEFINE(press_test_timer, PressTestTimerOutCallBack, NULL);
@@ -138,24 +137,22 @@ static void FTMenuPressUpdate(void)
 
 	if(ft_press_checking)
 	{
-		uint8_t tmpbuf[512] = {0};
+		uint8_t tmpbuf[128] = {0};
+		uint16_t x,y,w,h;
 		
 		if(!update_show_flag)
 		{
 			update_show_flag = true;
-			LCD_Fill(FT_PRESS_NOTIFY_X, FT_PRESS_NOTIFY_Y, FT_PRESS_NOTIFY_W, FT_PRESS_NOTIFY_H, BLACK);
-			LCD_SetFontSize(FONT_SIZE_20);
+			LCD_SetFontSize(FONT_SIZE_52);
 		}
 
-		LCD_Fill((LCD_WIDTH-180)/2, 60, 180, 100, BLACK);
+		LCD_Fill(FT_PRESS_NOTIFY_X, FT_PRESS_NOTIFY_Y, FT_PRESS_NOTIFY_W, FT_PRESS_NOTIFY_H, BLACK);
 		mmi_asc_to_ucs2(tmpbuf, press_test_info);
-		LCD_ShowUniStringInRect((LCD_WIDTH-180)/2, 60, 180, 100, (uint16_t*)tmpbuf);
+		LCD_ShowUniStringInRect(FT_PRESS_NOTIFY_X+2, FT_PRESS_NOTIFY_Y+2, FT_PRESS_NOTIFY_W-2, FT_PRESS_NOTIFY_H-2, (uint16_t*)tmpbuf);
 	}
 	else
 	{
 		update_show_flag = false;
-
-		LCD_SetFontSize(FONT_SIZE_28);
 
 		//pass or fail
 		LCD_SetFontSize(FONT_SIZE_52);
@@ -198,7 +195,7 @@ static void FTMenuPressShow(void)
 {
 	uint8_t i;
 	uint16_t x,y,w,h;
-	uint16_t title_str[8] = {0x6C14,0x538B,0x0047,0x6D4B,0x8BD5,0x0000};//气压测试
+	uint16_t title_str[8] = {0x6C14,0x538B,0x6D4B,0x8BD5,0x0000};//气压测试
 	uint16_t sle_str[2][5] = {
 								{0x4E0B,0x4E00,0x9879,0x0000},//下一项
 								{0x9000,0x51FA,0x0000},//退出
@@ -271,13 +268,13 @@ bool IsFTPressTesting(void)
 		return false;
 }
 
-void FTPressStatusUpdate(float prs)
+void FTPressStatusUpdate(float prs, float temp)
 {
 	static uint8_t count = 0;
 
 	if((screen_id == SCREEN_ID_FACTORY_TEST)&&(ft_menu.id == FT_PRESS))
 	{
-		if(prs > 0.0)
+		if((prs > 0.0) && (temp > 0.0))
 		{
 			count++;
 			if(count > 2)

@@ -138,7 +138,6 @@ static void FTMenuPressUpdate(void)
 	if(ft_press_checking)
 	{
 		uint8_t tmpbuf[128] = {0};
-		uint16_t x,y,w,h;
 		
 		if(!update_show_flag)
 		{

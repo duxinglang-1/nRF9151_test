@@ -2501,7 +2501,7 @@ void DecodeModemMonitor(uint8_t *buf, uint32_t len)
 			if(tmp_rsrp > 0)
 				modem_rsrp_handler(tmp_rsrp);
 
-		#if NB_DEBUG	//xb add 2024-01-02 屏蔽多余的数据解析
+		#ifdef NB_DEBUG	//xb add 2024-01-02 屏蔽多余的数据解析
 			//Active-Time
 			memset(tmpbuf, 0, sizeof(tmpbuf));
 			GetStringInforBySepa(ptr, ",", 14, tmpbuf);

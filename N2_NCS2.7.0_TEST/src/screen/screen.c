@@ -2708,8 +2708,6 @@ static void DisplayDynamicECGPoint(int16_t value)
 // 新的ECG数据显示函数 - 接收256字节数据并绘制波形
 void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
 {
-	LOGD("length = %d", length);
-
     // 不在ECG界面时不绘制
     if (screen_id != SCREEN_ID_ECG) {
         return;
@@ -2817,6 +2815,7 @@ void EcgDrawGrid(void)
         LCD_FillColor(x, GRID_Y_START, GRID_LINE_WIDTH, GRID_PIXEL_HEIGHT, GRID_SMALL_COLOR);
     }
 }
+
 void EcgScreenProcess(void)
 {
 	switch(scr_msg[SCREEN_ID_ECG].act)

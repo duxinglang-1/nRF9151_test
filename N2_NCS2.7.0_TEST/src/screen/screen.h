@@ -516,6 +516,9 @@ extern "C" {
 #define TEMP_DOWN_STR_X				250
 #define TEMP_DOWN_STR_Y				356
 
+//ecg
+
+
 //settings
 #define SETTINGS_MAIN_MENU_MAX_PER_PG	3
 #define SETTINGS_SUB_MENU_MAX_PER_PG	3
@@ -651,7 +654,6 @@ extern "C" {
 #define SCREEN_EVENT_UPDATE_POP_STR		0x00040000
 #define SCREEN_EVENT_UPDATE_BLE			0x00080000
 
-
 //screen ID
 typedef enum
 {
@@ -769,6 +771,11 @@ extern void EnterFTAssemResultsScreen(void);
 #endif
 extern void EnterFallScreen(void);
 extern void EnterMainMenuScreen(void);
+
+// ECG显示相关函数
+extern void EcgDisplayInit(void);
+extern void EcgDisplayDeinit(void);
+extern void EcgDisplayProcessData(const uint8_t *data, uint16_t length);
 #ifdef __cplusplus
 }
 #endif

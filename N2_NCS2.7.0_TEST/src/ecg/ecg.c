@@ -58,6 +58,14 @@ static void ecg_menu_stop_timerout(struct k_timer *timer_id)
 	}
 }
 
+bool IsInEcgScreen(void)
+{
+	if(screen_id == SCREEN_ID_ECG)
+		return true;
+	else
+		return false;
+}
+
 void StartECG(ECG_TRIGGER_SOUCE trigger_type)
 {
 	notify_infor infor = {0};
@@ -70,14 +78,14 @@ void StartECG(ECG_TRIGGER_SOUCE trigger_type)
 	infor.type = NOTIFY_TYPE_POPUP;
 
 
-	if(1
-	#ifdef CONFIG_FACTORY_TEST_SUPPORT
-		&& !IsFTECGTesting()
-	#endif
-		)
-	{
-		StartSCC();
-	}
+	//if(1
+	//#ifdef CONFIG_FACTORY_TEST_SUPPORT
+	//	&& !IsFTECGTesting()
+	//#endif
+	//	)
+	//{
+	//	StartSCC();
+	//}
 
 	switch(trigger_type)
 	{
@@ -137,12 +145,12 @@ void FTStopECG(void)
 
 void ECGDataProcess(uint8_t *data, uint32_t data_len)
 {
+    EcgDisplayProcessData(data, data_len);
 }
 
 void UartECGEventHandle(uint8_t *data, uint32_t data_len)
 {
 	uint8_t *ptr;
-	static uint32_t page_num=0,flash_partial=0;
 
 	if(data == NULL || data_len == 0)
 		return;
@@ -178,19 +186,19 @@ void ECGMsgProcess(void)
 {
 	if(menu_start_ecg)
 	{
-		StartTemp(ECG_TRIGGER_BY_MENU);
+    	StartECG(ECG_TRIGGER_BY_MENU);
 		menu_start_ecg = false;
 	}
 
 	if(app_start_ecg)
 	{
-		StartTemp(ECG_TRIGGER_BY_APP);
+    	StartECG(ECG_TRIGGER_BY_APP);
 		app_start_ecg = false;
 	}
 	
 	if(ft_start_ecg)
 	{
-		StartTemp(ECG_TRIGGER_BY_FT);
+    	StartECG(ECG_TRIGGER_BY_FT);
 		ft_start_ecg = false;
 	}
 
@@ -198,7 +206,7 @@ void ECGMsgProcess(void)
 	{
 		ecg_start_flag = false;
 		
-		CopcsSendData(UART_DATA_ECG, COM_ECG_GET_DATA, strlen(COM_ECG_GET_DATA));
+    	CopcsSendData(UART_DATA_ECG, COM_ECG_SET_OPEN, strlen(COM_ECG_SET_OPEN));
 	
 		if((g_ecg_trigger&ECG_TRIGGER_BY_HOURLY) == ECG_TRIGGER_BY_HOURLY)
 		{
@@ -212,6 +220,7 @@ void ECGMsgProcess(void)
 
 	if(ecg_stop_flag)
 	{
+    	CopcsSendData(UART_DATA_ECG, COM_ECG_SET_CLOSE, strlen(COM_ECG_SET_CLOSE));
 		ecg_stop_flag = false;
 	}
 }

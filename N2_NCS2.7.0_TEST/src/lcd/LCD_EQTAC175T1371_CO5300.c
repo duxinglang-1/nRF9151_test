@@ -39,6 +39,16 @@ static uint8_t rx_buffer[SPI_BUF_LEN] = {0};
 
 uint8_t lcd_data_buffer[2*LCD_DATA_LEN] = {0};	//xb add 20200702 a pix has 2 byte data
 
+K_MUTEX_DEFINE(lcd_mutex);
+inline void LCD_Lock(void)
+{
+    k_mutex_lock(&lcd_mutex, K_FOREVER);
+}
+
+inline void LCD_Unlock(void)
+{
+    k_mutex_unlock(&lcd_mutex);
+}
 #ifdef SPI_MUIT_BY_CS
 void LCD_CS_LOW(void)
 {

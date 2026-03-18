@@ -43,4 +43,9 @@ typedef enum
 extern uint8_t ecg_test_info[256];
 #endif
 
+extern bool IsInEcgScreen(void);
+extern void StartECG(ECG_TRIGGER_SOUCE trigger_type);
+extern void MenuStartECG(void);
+extern void MenuStopECG(void);
+
 #endif/*__ECG_H__*/

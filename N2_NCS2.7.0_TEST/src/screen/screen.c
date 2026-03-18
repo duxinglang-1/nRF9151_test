@@ -67,6 +67,7 @@
 #include "ft_aging.h"
 #endif/*CONFIG_FACTORY_TEST_SUPPORT*/
 #include "logger.h"
+#include "ecg.h"
 
 static uint8_t scr_index = 0;
 static uint8_t bat_charging_index = 0;
@@ -85,6 +86,10 @@ K_TIMER_DEFINE(ppg_status_timer, PPGStatusTimerOutCallBack, NULL);
 #ifdef CONFIG_TEMP_SUPPORT
 static void TempStatusTimerOutCallBack(struct k_timer *timer_id);
 K_TIMER_DEFINE(temp_status_timer, TempStatusTimerOutCallBack, NULL);
+#endif
+#ifdef CONFIG_ECG_SUPPORT
+static void EcgStartTimerOutCallBack(struct k_timer *timer_id);
+K_TIMER_DEFINE(ecg_start_timer, EcgStartTimerOutCallBack, NULL);
 #endif
 
 SCREEN_ID_ENUM screen_id = SCREEN_ID_BOOTUP;
@@ -2251,6 +2256,10 @@ void EnterSettingsScreen(void)
 	if(IsInPPGScreen()&&!PPGIsWorkingTiming())
 		MenuStopPPG();
 #endif
+#ifdef CONFIG_ECG_SUPPORT
+	if(IsInEcgScreen())
+		ExitEcgScreen();
+#endif
 #ifdef CONFIG_WIFI_SUPPORT
 	if(IsInWifiScreen()&&wifi_is_working())
 		MenuStopWifi();
@@ -2389,6 +2398,10 @@ void EnterSyncDataScreen(void)
 	if(IsInPPGScreen()&&!PPGIsWorkingTiming())
 		MenuStopPPG();
 #endif
+#ifdef CONFIG_ECG_SUPPORT
+	if(IsInEcgScreen())
+		ExitEcgScreen();
+#endif
 	LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
 
 	history_screen_id = screen_id;
@@ -2511,7 +2524,7 @@ void EcgShowStatus(void)
 	LCD_SetFontSize(FONT_SIZE_24);
   #endif
 
-	mmi_asc_to_ucs2(tmpbuf, "ECG test");
+	mmi_asc_to_ucs2(tmpbuf, "");
 	LCD_MeasureUniString(tmpbuf, &w, &h);
 #ifdef LANGUAGE_AR_ENABLE	
 	if(g_language_r2l)
@@ -2522,6 +2535,288 @@ void EcgShowStatus(void)
 
 }
 
+// ECG波形显示区域定义
+#define ECG_WAVE_X_START    GRID_X_START        // 波形起始X与网格左边界对齐
+#define ECG_WAVE_X_END      (LCD_WIDTH - 15)
+#define ECG_WAVE_Y_START    75                  // 波形区域与网格顶部对齐
+#define ECG_WAVE_HEIGHT     285                 // 波形区域高度与网格一致
+#define ECG_WAVE_COLOR      RED
+#define GRID_SMALL_COLOR    GRAY
+#define SMALL_GRID_SIZE     13                  // 小网格尺寸（格子内宽）
+#define GRID_LINE_WIDTH     2                   // 网格线宽度
+
+// 屏幕尺寸：宽390 x 高450
+// 顶部预留15%空间：450 * 0.15 = 67.5 ≈ 68像素，取整后75像素
+// 底部预留20%空间：450 * 0.2 = 90像素
+// 网格可用高度：450 - 75 - 90 = 285像素
+// Y方向：19个格子，每个格子13像素 + 20条线各2像素 = 247 + 40 = 287 ≈ 285
+// X方向：24个格子，每个格子13像素 + 25条线各2像素 = 312 + 50 = 362 ≈ 360
+#define GRID_CELLS_Y        19                  // Y方向19个格子
+#define GRID_CELLS_X        24                  // X方向24个格子
+#define GRID_PIXEL_HEIGHT   (GRID_CELLS_Y * SMALL_GRID_SIZE + (GRID_CELLS_Y + 1) * GRID_LINE_WIDTH)  // 287
+#define GRID_PIXEL_WIDTH    (GRID_CELLS_X * SMALL_GRID_SIZE + (GRID_CELLS_X + 1) * GRID_LINE_WIDTH)  // 362
+// 网格起始位置
+#define GRID_Y_START        75                  // 顶部预留75像素
+#define GRID_X_START        14                  // 左右边距14像素，使网格居中
+// 网格结束位置
+#define GRID_Y_END          (GRID_Y_START + GRID_PIXEL_HEIGHT - 1)  // 361
+#define GRID_X_END          (GRID_X_START + GRID_PIXEL_WIDTH - 1)    // 375
+
+// ECG数据环形缓冲区
+#define ECG_LOCAL_BUFFER_SIZE  512
+static int16_t ecg_local_buffer[ECG_LOCAL_BUFFER_SIZE];
+static volatile uint16_t ecg_local_read_idx = 0;
+static volatile uint16_t ecg_local_write_idx = 0;
+static volatile bool ecg_local_buffer_full = false;
+
+// 波形绘制状态
+static uint16_t s_ecg_wave_x = ECG_WAVE_X_START;
+static uint16_t s_ecg_prev_y = ECG_WAVE_Y_START + ECG_WAVE_HEIGHT / 2;
+static uint16_t s_ecg_prev_x = ECG_WAVE_X_START;
+
+// 网格列模板预计算
+// 周期 = SMALL_GRID_SIZE + GRID_LINE_WIDTH = 13 + 2 = 15
+#define ECG_GRID_STRIPE_PERIOD  (SMALL_GRID_SIZE + GRID_LINE_WIDTH)  // 15
+// 每列模板高度多1行，防止LCD_DrawLine斜线在GRID_Y_END+1处残留
+#define ECG_GRID_COL_HEIGHT     (GRID_PIXEL_HEIGHT + 1)              // 288
+// 每个模板 1 列 * ECG_GRID_COL_HEIGHT * 2 字节
+static uint8_t ecg_col_templates[ECG_GRID_STRIPE_PERIOD][ECG_GRID_COL_HEIGHT * 2];
+static bool ecg_col_templates_ready = false;
+
+// 在 EcgDisplayInit 时调用，预计算所有 15 种列模板
+static void EcgPrecomputeColTemplates(void)
+{
+    const uint16_t GRAY_H  = GRID_SMALL_COLOR >> 8;
+    const uint16_t GRAY_L  = GRID_SMALL_COLOR & 0xFF;
+    const uint16_t BLACK_H = BLACK >> 8;
+    const uint16_t BLACK_L = BLACK & 0xFF;
+
+    for (uint16_t xp = 0; xp < ECG_GRID_STRIPE_PERIOD; xp++) {
+        bool is_vcol = (xp < GRID_LINE_WIDTH);  // 该列是否为竖线
+        uint8_t *tmpl = ecg_col_templates[xp];
+        uint32_t idx = 0;
+
+        for (uint16_t y = 0; y < ECG_GRID_COL_HEIGHT; y++) {
+            uint16_t color_h, color_l;
+            if (y < GRID_PIXEL_HEIGHT) {
+                // 在网格有效高度内
+                uint16_t yp = y % ECG_GRID_STRIPE_PERIOD;
+                bool is_hrow = (yp < GRID_LINE_WIDTH);  // 该行是否为横线
+                if (is_vcol || is_hrow) {
+                    color_h = GRAY_H;
+                    color_l = GRAY_L;
+                } else {
+                    color_h = BLACK_H;
+                    color_l = BLACK_L;
+                }
+            } else {
+                // 超出网格底部的1行：黑色（覆盖斜线残留）
+                color_h = BLACK_H;
+                color_l = BLACK_L;
+            }
+            tmpl[idx++] = color_h;
+            tmpl[idx++] = color_l;
+        }
+    }
+    ecg_col_templates_ready = true;
+}
+
+// 快速恢复指定列的网格（清除旧波形，恢复网格背景）
+// 固定恢复宽度为 2 列，直接拼接两个预计算模板，一次 SPI 刷新
+#define ECG_RESTORE_COL_WIDTH  2
+static void RestoreGridColumns(uint16_t x, uint16_t width)
+{
+    (void)width;  // 固定宽度 2，忽略参数
+
+    if (!ecg_col_templates_ready) {
+        return;
+    }
+    if (x + ECG_RESTORE_COL_WIDTH > ECG_WAVE_X_END + 1) {
+        return;
+    }
+
+    // 拼合两列模板到静态发送缓冲区（交错写入：每行先col0再col1）
+    static uint8_t data_buf[ECG_RESTORE_COL_WIDTH * ECG_GRID_COL_HEIGHT * 2];
+
+    uint16_t xp0 = (x     - GRID_X_START) % ECG_GRID_STRIPE_PERIOD;
+    uint16_t xp1 = (x + 1 - GRID_X_START) % ECG_GRID_STRIPE_PERIOD;
+    const uint8_t *t0 = ecg_col_templates[xp0];
+    const uint8_t *t1 = ecg_col_templates[xp1];
+
+    // LCD 行优先扫描：每行依次存 col0、col1
+    uint32_t src = 0, dst = 0;
+    for (uint16_t y = 0; y < ECG_GRID_COL_HEIGHT; y++) {
+        data_buf[dst++] = t0[src];
+        data_buf[dst++] = t0[src + 1];
+        data_buf[dst++] = t1[src];
+        data_buf[dst++] = t1[src + 1];
+        src += 2;
+    }
+
+    BlockWrite(x, GRID_Y_START, ECG_RESTORE_COL_WIDTH, ECG_GRID_COL_HEIGHT);
+    DispData(ECG_RESTORE_COL_WIDTH * ECG_GRID_COL_HEIGHT * 2, data_buf);
+}
+
+// 动态显示 ECG 波形（不清屏，只恢复当前列网格）
+static void DisplayDynamicECGPoint(int16_t value)
+{
+    // Y 轴映射 - 使用宏定义的网格区域
+
+    // Y 轴范围
+    static int16_t min_value = -5000, max_value = 5000;
+    if (value < min_value) value = min_value;
+    if (value > max_value) value = max_value;
+
+    int range = max_value - min_value;
+    if (range == 0) range = 1;
+
+    uint16_t y = GRID_Y_START + GRID_PIXEL_HEIGHT - 
+                 (uint16_t)(((int32_t)(value - min_value) * GRID_PIXEL_HEIGHT) / range);
+    
+    // 限制 Y 坐标在显示区间内
+    if (y < GRID_Y_START) y = GRID_Y_START;
+    if (y > GRID_Y_END) y = GRID_Y_END;
+
+    /* 加锁：保证整个"清除旧点+画新点"是原子操作，不被主线程插入 */
+     LCD_Lock();  /* 需要LCD驱动层提供互斥接口时启用 */
+    
+    // 若到达右边界 → 重新从左边开始（不清屏）
+    if (s_ecg_wave_x > GRID_X_END) {
+        // 清除最右边可能残留的波形
+        RestoreGridColumns(GRID_X_END - 1, 2);
+        
+        s_ecg_wave_x = GRID_X_START;
+        s_ecg_prev_x = s_ecg_wave_x;
+        s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
+    } else {
+        // 先清除并恢复网格背景（只恢复当前列）
+        RestoreGridColumns(s_ecg_wave_x, 2);
+    }
+
+    // 设置画笔颜色为红色并画线
+    POINT_COLOR = ECG_WAVE_COLOR;
+    LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
+
+    LCD_Unlock();
+
+    // 更新位置
+    s_ecg_prev_x = s_ecg_wave_x;
+    s_ecg_prev_y = y;
+    s_ecg_wave_x += 2;
+}
+
+// 新的ECG数据显示函数 - 接收256字节数据并绘制波形
+void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
+{
+	LOGD("length = %d", length);
+
+    // 不在ECG界面时不绘制
+    if (screen_id != SCREEN_ID_ECG) {
+        return;
+    }
+
+    // 验证输入参数
+    if (data == NULL || length != 256) {
+        LOGD("Invalid ECG data: data=%p, length=%d", data, length);
+        return;
+    }
+    
+    // 256字节 = 128个int16_t，每两字节一个样本，低字节在前（Little-Endian）
+    // 手动解析避免对齐问题
+    for (int i = 0; i < 128; i++) {
+        int16_t value = (int16_t)((uint16_t)data[i * 2] | ((uint16_t)data[i * 2 + 1] << 8));
+        
+        // Y 轴映射 - 使用宏定义的网格区域
+        static int16_t min_value = -6000, max_value = 6000;
+        if (value < min_value) value = min_value;
+        if (value > max_value) value = max_value;
+
+        int range = max_value - min_value;
+        if (range == 0) range = 1;
+
+        uint16_t y = GRID_Y_START + GRID_PIXEL_HEIGHT - 
+                     (uint16_t)(((int32_t)(value - min_value) * GRID_PIXEL_HEIGHT) / range);
+        
+        // 限制 Y 坴标在显示区间内
+        if (y < GRID_Y_START) y = GRID_Y_START;
+        if (y > GRID_Y_END) y = GRID_Y_END;
+
+        /* 加锁：保证整个"清除旧点+画新点"是原子操作 */
+        //LCD_Lock();
+        
+        // 若到达右边界 → 重新从左边开始
+        if (s_ecg_wave_x > GRID_X_END) {
+            // 清除最右边可能残留的波形，从 GRID_X_END-1 开始覆盖2列
+            RestoreGridColumns(GRID_X_END - 1, 2);
+            
+            s_ecg_wave_x = GRID_X_START;
+            s_ecg_prev_x = s_ecg_wave_x;
+            s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
+            // 同时清除起始列，避免上一轮残留
+            RestoreGridColumns(GRID_X_START, 2);
+        } else {
+            // 先清除并恢复网格背景（只恢复当前列）
+            RestoreGridColumns(s_ecg_wave_x, 2);
+        }
+
+        // 设置画笔颜色为红色并画线
+        POINT_COLOR = ECG_WAVE_COLOR;
+        LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
+
+        //LCD_Unlock();
+
+        // 更新位置
+        s_ecg_prev_x = s_ecg_wave_x;
+        s_ecg_prev_y = y;
+        s_ecg_wave_x += 2;
+    }
+}
+
+// 初始化ECG显示
+void EcgDisplayInit(void)
+{
+    // 预计算网格列模板（仅在模板未就绪时执行，避免重复计算）
+    if (!ecg_col_templates_ready) {
+        EcgPrecomputeColTemplates();
+    }
+
+    // 绘制网格背景
+    EcgDrawGrid();
+    
+    // 初始化波形绘制位置
+    s_ecg_wave_x = GRID_X_START;
+    s_ecg_prev_x = s_ecg_wave_x;
+    s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
+    
+    //LOGD("ECG display initialized");
+}
+
+void EcgDisplayDeinit(void)
+{
+    // 恢复默认颜色，避免影响其他界面
+    POINT_COLOR = WHITE;
+    BACK_COLOR = BLACK;
+    
+    //LOGD("ECG display deinitialized");
+}
+
+void EcgDrawGrid(void)
+{
+    // 1. 先填充整个网格区域为黑色背景
+    //LCD_FillColor(GRID_X_START, GRID_Y_START, GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT, BLACK);
+    
+    // 2. 画水平网格线
+    for (uint8_t row = 0; row <= GRID_CELLS_Y; row++) {
+        uint16_t y = GRID_Y_START + row * (SMALL_GRID_SIZE + GRID_LINE_WIDTH);
+        LCD_FillColor(GRID_X_START, y, GRID_PIXEL_WIDTH, GRID_LINE_WIDTH, GRID_SMALL_COLOR);
+    }
+    
+    // 3. 画垂直网格线
+    for (uint8_t col = 0; col <= GRID_CELLS_X; col++) {
+        uint16_t x = GRID_X_START + col * (SMALL_GRID_SIZE + GRID_LINE_WIDTH);
+        LCD_FillColor(x, GRID_Y_START, GRID_LINE_WIDTH, GRID_PIXEL_HEIGHT, GRID_SMALL_COLOR);
+    }
+}
 void EcgScreenProcess(void)
 {
 	switch(scr_msg[SCREEN_ID_ECG].act)
@@ -2534,6 +2829,8 @@ void EcgScreenProcess(void)
 		IdleShowNetMode();
 		IdleShowBatSoc();
 		EcgShowStatus();
+		// 初始化ECG显示
+		EcgDisplayInit();
 		break;
 		
 	case SCREEN_ACTION_UPDATE:
@@ -2563,8 +2860,41 @@ void EcgScreenProcess(void)
 	scr_msg[SCREEN_ID_ECG].act = SCREEN_ACTION_NO;
 }
 
+static void EcgStartTimerOutCallBack(struct k_timer *timer_id)
+{
+	MenuStartECG();
+}
 void ExitEcgScreen(void)
 {
+	LOGD("Exit ECG screen");
+	// 停止ECG启动定时器
+	k_timer_stop(&ecg_start_timer);
+
+	// 停止ECG采集
+	MenuStopECG();
+
+	// 清理ECG显示（停止画图）
+	EcgDisplayDeinit();
+
+	// 重置波形绘制状态
+	s_ecg_wave_x = ECG_WAVE_X_START;
+	s_ecg_prev_x = ECG_WAVE_X_START;
+	s_ecg_prev_y = ECG_WAVE_Y_START + (uint16_t)(ECG_WAVE_HEIGHT * 0.5);
+
+	ecg_local_read_idx = 0;
+	ecg_local_write_idx = 0;
+
+	LCD_Set_BL_Mode(LCD_BL_AUTO);
+
+	// 注意：不要在这里调用 EnterIdleScreen()，
+	// 因为 EnterIdleScreen 内部会再次调用 ExitEcgScreen 导致递归栈溢出
+	// 界面跳转应该由调用方（按键处理函数）负责
+}
+
+static void ExitEcgScreenAndGoIdle(void)
+{
+	ExitEcgScreen();
+	EnterIdleScreen();
 }
 
 void EnterEcgScreen(void)
@@ -2601,7 +2931,7 @@ void EnterEcgScreen(void)
 #else
 	SetLeftKeyUpHandler(EnterSettings);
 #endif
-	SetRightKeyUpHandler(ExitEcgScreen);
+	SetRightKeyUpHandler(ExitEcgScreenAndGoIdle);
 
 #ifdef CONFIG_TOUCH_SUPPORT
 	clear_all_touch_event_handle();
@@ -2626,6 +2956,8 @@ void EnterEcgScreen(void)
 	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterIdleScreen);
   #endif
 #endif
+	// 1秒后启动ECG测量
+	k_timer_start(&ecg_start_timer, K_SECONDS(1), K_NO_WAIT);
 }
 
 #endif
@@ -3591,6 +3923,10 @@ void EnterBPScreen(void)
 #endif
 	if(IsInPPGScreen()&&!PPGIsWorkingTiming())
 		MenuStopPPG();
+#ifdef CONFIG_ECG_SUPPORT
+	if(IsInEcgScreen())
+		ExitEcgScreen();
+#endif
 
 	LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
 
@@ -6019,6 +6355,10 @@ void EnterIdleScreen(void)
 #ifdef CONFIG_SYNC_SUPPORT
 	if(SyncIsRunning())
 		SyncDataStop();
+#endif
+#ifdef CONFIG_ECG_SUPPORT
+	if(IsInEcgScreen())
+		ExitEcgScreen();
 #endif
 
 	LCD_Set_BL_Mode(LCD_BL_AUTO);

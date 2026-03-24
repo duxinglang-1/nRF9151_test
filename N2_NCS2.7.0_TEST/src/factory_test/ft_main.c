@@ -446,7 +446,7 @@ static void FactoryTestMainUpdate(void)
 	uint16_t green_clor = 0x07e0;
 	uint16_t title_smt[6] = {0x0053,0x004D,0x0054,0x6D4B,0x8BD5,0x0000};//SMT²âÊÔ
 	uint16_t title_assem[5] = {0x7EC4,0x88C5,0x6D4B,0x8BD5,0x0000};//×é×°²âÊÔ
-	uint32_t img_addr[2] = {IMG_SELECT_ICON_NO_ADDR,IMG_SELECT_ICON_YES_ADDR};
+	uint32_t img_addr[2] = {IMG_ID_SELECT_ICON_NO,IMG_ID_SELECT_ICON_YES};
 
 	LCD_Clear(BLACK);
 	LCD_SetFontSize(FONT_SIZE_20);
@@ -471,7 +471,7 @@ static void FactoryTestMainUpdate(void)
 	{
 		if((FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG) + i) >= ft_menu.count)
 			break;
-		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_SET_BG_ADDR);
+		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
 		LCD_SetFontColor(WHITE);
 	
 		LCD_ShowUniString(FT_MENU_STR_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y)+FT_MENU_STR_OFFSET_Y, ft_menu.item[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)].name);
@@ -506,7 +506,7 @@ static void FactoryTestMainShow(void)
 	uint16_t green_clor = 0x07e0;
 	uint16_t title_smt[6] = {0x0053,0x004D,0x0054,0x6D4B,0x8BD5,0x0000};//SMT²âÊÔ
 	uint16_t title_assem[5] = {0x7EC4,0x88C5,0x6D4B,0x8BD5,0x0000};//×é×°²âÊÔ
-	uint32_t img_addr[2] = {IMG_SELECT_ICON_NO_ADDR,IMG_SELECT_ICON_YES_ADDR};
+	uint32_t img_addr[2] = {IMG_ID_SELECT_ICON_NO,IMG_ID_SELECT_ICON_YES};
 	
 	LCD_Clear(BLACK);
 	LCD_Set_BL_Mode(LCD_BL_ALWAYS_ON);
@@ -536,7 +536,7 @@ static void FactoryTestMainShow(void)
 	{
 		if((FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG) + i) >= ft_menu.count)
 			break;
-		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_SET_BG_ADDR);
+		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
 		LCD_SetFontColor(WHITE);
 		LCD_ShowUniString(FT_MENU_STR_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y)+FT_MENU_STR_OFFSET_Y, ft_menu.item[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)].name);
 		LCD_ShowImg_From_Flash(FT_MENU_CHECKED_X, FT_MENU_CHECKED_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), img_addr[ft_menu_checked[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)]]);

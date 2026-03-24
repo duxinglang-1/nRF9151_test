@@ -79,6 +79,7 @@ static void SettingsMainMenu7Proc(void);
 static void SettingsMenuLang1Proc(void);
 static void SettingsMenuLang2Proc(void);
 static void SettingsMenuLang3Proc(void);
+static void SettingsMenuLang4Proc(void);
 static void SettingsMenuReset1Proc(void);
 static void SettingsMenuReset2Proc(void);
 static void SettingsMenuCaremateQRProc(void);
@@ -329,6 +330,7 @@ const settings_menu_t SETTING_MENU_LANGUAGE =
 		SettingsMenuLang1Proc,
 		SettingsMenuLang2Proc,
 		SettingsMenuLang3Proc,
+		SettingsMenuLang4Proc,
 	},
 	{	
 		//page proc func
@@ -851,6 +853,40 @@ void SettingsMenuLang3Proc(void)
 	if(global_settings.language != LANG_MENU_ITEM[settings_menu.index+2])
 	{
 		global_settings.language = LANG_MENU_ITEM[settings_menu.index+2];
+		need_save_settings = true;
+	}
+
+	memcpy(&settings_menu, &SETTING_MAIN_MENU, sizeof(settings_menu_t));
+	settings_menu.index = main_menu_index_bk;
+	
+	if(screen_id == SCREEN_ID_SETTINGS)
+	{
+		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
+}
+
+void SettingsMenuLang4Proc(void)
+{
+	if(global_settings.language != LANG_MENU_ITEM[settings_menu.index+3])
+	{
+		global_settings.language = LANG_MENU_ITEM[settings_menu.index+3];
+		need_save_settings = true;
+	}
+
+	memcpy(&settings_menu, &SETTING_MAIN_MENU, sizeof(settings_menu_t));
+	settings_menu.index = main_menu_index_bk;
+	
+	if(screen_id == SCREEN_ID_SETTINGS)
+	{
+		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+	}
+}
+
+void SettingsMenuLang5Proc(void)
+{
+	if(global_settings.language != LANG_MENU_ITEM[settings_menu.index+4])
+	{
+		global_settings.language = LANG_MENU_ITEM[settings_menu.index+4];
 		need_save_settings = true;
 	}
 

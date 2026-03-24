@@ -362,7 +362,6 @@ void FOTARedrawProgress(void)
 {
 	if(screen_id == SCREEN_ID_FOTA)
 	{
-		scr_msg[screen_id].para |= SCREEN_EVENT_UPDATE_FOTA;
 		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
 	}
 }

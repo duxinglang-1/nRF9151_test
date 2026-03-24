@@ -15,6 +15,7 @@
 #include "lcd.h"
 #include "logger.h"
 
+#if 0	//xb add 2026-03-19
 
 static bool mainmenu_redraw_flag = false;
 
@@ -222,3 +223,5 @@ void EnterMainMenu(void)
 	
 	EnterMainMenuScreen();
 }
+
+#endif

@@ -99,7 +99,6 @@ void SOSStatusUpdate(void)
 	
 	if(screen_id == SCREEN_ID_SOS)
 	{
-		scr_msg[screen_id].para |= SCREEN_EVENT_UPDATE_SOS;
 		scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
 	}
 	

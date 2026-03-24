@@ -457,7 +457,7 @@ void StartTemp(TEMP_TRIGGER_SOUCE trigger_type)
 	case TEMP_TRIGGER_BY_MENU:
 		if(!is_wearing())
 		{
-			infor.img[0] = IMG_WRIST_OFF_ICON_ADDR;
+			infor.img[0] = IMG_ID_WRIST_OFF_ICON;
 			infor.img_count = 1;
 
 			DisplayPopUp(infor);
@@ -535,7 +535,7 @@ void TempDataProcess(uint8_t *data, uint32_t len)
 
 		if((g_temp_trigger&TEMP_TRIGGER_BY_MENU) == TEMP_TRIGGER_BY_MENU)
 		{
-			infor.img[0] = IMG_WRIST_OFF_ICON_ADDR;
+			infor.img[0] = IMG_ID_WRIST_OFF_ICON;
 			infor.img_count = 1;
 			DisplayPopUp(infor);
 		}

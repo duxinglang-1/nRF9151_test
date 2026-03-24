@@ -16,6 +16,8 @@
 #include "strdef.h"
 #include "imgdef.h"
 
+#if 0	//xb add 2026-03-19
+
 #define MAIN_MENU_MAX_COUNT	15
 #define MAIN_MENU_NAME_MAX	25
 #define MAIN_MENU_NAME_STR_MAX	15
@@ -80,4 +82,6 @@ extern uint8_t g_main_menu_index;
 extern main_menu_t main_menu;
 
 extern void EnterMainMenu(void);
+
+#endif
 #endif/*__MAINMENU_H__*/

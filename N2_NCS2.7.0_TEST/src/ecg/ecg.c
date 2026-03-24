@@ -12,6 +12,7 @@
 #include "external_flash.h"
 #include "lcd.h"
 #include "screen.h"
+#include "settings.h"
 #include "logger.h"
 #include "uart.h"
 #include "ecg.h"
@@ -101,7 +102,7 @@ void StartECG(ECG_TRIGGER_SOUCE trigger_type)
 	case ECG_TRIGGER_BY_MENU:
 		if(!is_wearing())
 		{
-			infor.img[0] = IMG_WRIST_OFF_ICON_ADDR;
+			infor.img[0] = IMG_ID_WRIST_OFF_ICON;
 			infor.img_count = 1;
 
 			DisplayPopUp(infor);

@@ -395,6 +395,7 @@ void LCD_SleepOut(void)
 		return;
 
 	gpio_pin_set(gpio_lcd, VBAT, 1);
+	Delay(10);
 	gpio_pin_set(gpio_lcd, EN, 1);
 	Delay(10);
 	

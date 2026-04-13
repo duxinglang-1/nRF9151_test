@@ -35,7 +35,7 @@
 #define MENU_OPT_STR_MAX	10
 #define MENU_NOTIFY_STR_MAX	32
 
-#define VERSION_STR	"1.0.0_60320"
+#define VERSION_STR	"1.0.0_603413"
 
 #ifdef FW_FOR_CN
 #define LANG_BRANCH	"C"

@@ -31,6 +31,9 @@ static bool menu_start_ecg = false;
 static bool ft_start_ecg = false;
 static bool app_start_ecg = false;
 
+// ECG lead status
+ECG_LEAD_STATUS g_ecg_lead_status = ECG_LEAD_STATUS_UNKNOWN;
+
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
 uint8_t ecg_test_info[256] = {0};
 #endif
@@ -175,6 +178,33 @@ void UartECGEventHandle(uint8_t *data, uint32_t data_len)
 		}
 		else if((ptr1 = strstr(ptr, COM_ECG_GET_INFOR)) != NULL)
 		{
+			ptr1 += strlen(COM_ECG_GET_DATA);
+		}
+		else if((ptr1 = strstr(ptr, COM_ECG_LEAD_STATUS)) != NULL)
+		{
+			// Parse lead status
+			if(strstr(ptr, COM_ECG_LEAD_OFF) != NULL)
+			{
+				g_ecg_lead_status = ECG_LEAD_STATUS_OFF;
+				LOGD("ECG Lead Status: OFF");
+			}
+			else if(strstr(ptr, COM_ECG_LEAD_ON) != NULL)
+			{
+				g_ecg_lead_status = ECG_LEAD_STATUS_ON;
+				LOGD("ECG Lead Status: ON");
+			}
+			else if(strstr(ptr, COM_ECG_LEAD_TIME_OUT) != NULL)
+			{
+				g_ecg_lead_status = ECG_LEAD_STATUS_TIMEOUT;
+				LOGD("ECG Lead Status: TIMEOUT");
+			}
+			
+			// Notify screen to update lead status display
+			if(screen_id == SCREEN_ID_ECG)
+			{
+				scr_msg[screen_id].para |= SCREEN_EVENT_UPDATE_ECG_LEAD;
+				scr_msg[screen_id].act = SCREEN_ACTION_UPDATE;
+			}
 		}
 	}
 }

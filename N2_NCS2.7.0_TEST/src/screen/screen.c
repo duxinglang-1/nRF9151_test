@@ -41,6 +41,9 @@
 #endif
 #include "gps.h"
 #include "uart.h"
+#ifdef CONFIG_ECG_SUPPORT
+#include "ecg.h"
+#endif
 #ifdef CONFIG_TOUCH_SUPPORT
 #include "CST816.h"
 #endif
@@ -67,7 +70,11 @@
 #include "ft_aging.h"
 #endif/*CONFIG_FACTORY_TEST_SUPPORT*/
 #include "logger.h"
-#include "ecg.h"
+
+// External ECG lead status variable
+#ifdef CONFIG_ECG_SUPPORT
+extern ECG_LEAD_STATUS g_ecg_lead_status;
+#endif
 
 static uint8_t scr_index = 0;
 static uint8_t bat_charging_index = 0;
@@ -86,10 +93,6 @@ K_TIMER_DEFINE(ppg_status_timer, PPGStatusTimerOutCallBack, NULL);
 #ifdef CONFIG_TEMP_SUPPORT
 static void TempStatusTimerOutCallBack(struct k_timer *timer_id);
 K_TIMER_DEFINE(temp_status_timer, TempStatusTimerOutCallBack, NULL);
-#endif
-#ifdef CONFIG_ECG_SUPPORT
-static void EcgStartTimerOutCallBack(struct k_timer *timer_id);
-K_TIMER_DEFINE(ecg_start_timer, EcgStartTimerOutCallBack, NULL);
 #endif
 
 SCREEN_ID_ENUM screen_id = SCREEN_ID_BOOTUP;
@@ -2533,6 +2536,57 @@ void EcgUpdateStatus(void)
 	/*update ecg status*/	
 }
 
+// Show ECG lead status in bottom-left corner
+void EcgShowLeadStatus(void)
+{
+	uint16_t x, y, w, h;
+	uint8_t tmpbuf[128] = {0};
+	const char *status_str;
+	
+	// Determine status string based on lead status
+	switch(g_ecg_lead_status)
+	{
+		case ECG_LEAD_STATUS_OFF:
+			status_str = "off";
+			break;
+		case ECG_LEAD_STATUS_ON:
+			status_str = "on";
+			break;
+		case ECG_LEAD_STATUS_TIMEOUT:
+			status_str = "timeout";
+			break;
+		default:
+			status_str = "";
+			break;
+	}
+	
+	// Don't display if status is empty
+	if(status_str[0] == '\0')
+		return;
+	
+	// Set font size
+#ifdef FONTMAKER_UNICODE_FONT
+	LCD_SetFontSize(FONT_SIZE_20);
+#else
+	LCD_SetFontSize(FONT_SIZE_16);
+#endif
+	
+	// Convert to UCS2
+	mmi_asc_to_ucs2(tmpbuf, status_str);
+	LCD_MeasureUniString(tmpbuf, &w, &h);
+	
+	// Position in bottom-left corner (adjust coordinates as needed)
+	x = 10;  // Left margin
+	y = LCD_HEIGHT - h - 5;  // Bottom margin
+	
+#ifdef LANGUAGE_AR_ENABLE
+	if(g_language_r2l)
+		LCD_ShowUniStringRtoL(x, y, tmpbuf);
+	else
+#endif
+		LCD_ShowUniString(x, y, tmpbuf);
+}
+
 void EcgShowStatus(void)
 {
 	uint16_t i,x,y,w,h;
@@ -2558,12 +2612,12 @@ void EcgShowStatus(void)
 // ECG波形显示区域定义
 #define ECG_WAVE_X_START    GRID_X_START        // 波形起始X与网格左边界对齐
 #define ECG_WAVE_X_END      (LCD_WIDTH - 15)
-#define ECG_WAVE_Y_START    75                  // 波形区域与网格顶部对齐
-#define ECG_WAVE_HEIGHT     285                 // 波形区域高度与网格一致
+#define ECG_WAVE_Y_START    75                  // 波形区域与网格顶部对??
+#define ECG_WAVE_HEIGHT     285                 // 波形区域高度与网格一??
 #define ECG_WAVE_COLOR      RED
 #define GRID_SMALL_COLOR    GRAY
-#define SMALL_GRID_SIZE     13                  // 小网格尺寸（格子内宽）
-#define GRID_LINE_WIDTH     2                   // 网格线宽度
+#define SMALL_GRID_SIZE     20                  // 小网格尺寸（格子内宽??
+#define GRID_LINE_WIDTH     2                   // 网格线宽??
 
 // 屏幕尺寸：宽390 x 高450
 // 顶部预留15%空间：450 * 0.15 = 67.5 ≈ 68像素，取整后75像素
@@ -2571,8 +2625,8 @@ void EcgShowStatus(void)
 // 网格可用高度：450 - 75 - 90 = 285像素
 // Y方向：19个格子，每个格子13像素 + 20条线各2像素 = 247 + 40 = 287 ≈ 285
 // X方向：24个格子，每个格子13像素 + 25条线各2像素 = 312 + 50 = 362 ≈ 360
-#define GRID_CELLS_Y        19                  // Y方向19个格子
-#define GRID_CELLS_X        24                  // X方向24个格子
+#define GRID_CELLS_Y        13                  // Y方向13个格??
+#define GRID_CELLS_X        16                  // X方向16个格??
 #define GRID_PIXEL_HEIGHT   (GRID_CELLS_Y * SMALL_GRID_SIZE + (GRID_CELLS_Y + 1) * GRID_LINE_WIDTH)  // 287
 #define GRID_PIXEL_WIDTH    (GRID_CELLS_X * SMALL_GRID_SIZE + (GRID_CELLS_X + 1) * GRID_LINE_WIDTH)  // 362
 // 网格起始位置
@@ -2593,6 +2647,21 @@ static volatile bool ecg_local_buffer_full = false;
 static uint16_t s_ecg_wave_x = ECG_WAVE_X_START;
 static uint16_t s_ecg_prev_y = ECG_WAVE_Y_START + ECG_WAVE_HEIGHT / 2;
 static uint16_t s_ecg_prev_x = ECG_WAVE_X_START;
+
+// 用于记录上一轮波形每个位置的 y 值，以便新一轮清除旧波形
+// 数组索引 = (x - GRID_X_START) / 2，0xFFFF表示该位置无波形
+#define ECG_WAVE_HISTORY_SIZE  ((GRID_PIXEL_WIDTH / 2) + 1)  // 178
+static uint16_t ecg_wave_y_history[ECG_WAVE_HISTORY_SIZE];         // 当前点的y值
+static uint16_t ecg_wave_prev_x_history[ECG_WAVE_HISTORY_SIZE];    // 起点的x值，用于精确清除线段
+static uint16_t ecg_wave_prev_y_history[ECG_WAVE_HISTORY_SIZE];    // 起点的y值，用于清除线段
+#define ECG_WAVE_Y_INVALID  0xFFFF
+
+// ECG倒计时显??
+static uint8_t s_ecg_countdown_seconds = 60;
+static bool s_ecg_countdown_first_show = true;
+static void EcgCountdownTimerCallBack(struct k_timer *timer_id);
+K_TIMER_DEFINE(ecg_countdown_timer, EcgCountdownTimerCallBack, NULL);
+#define ECG_COUNTDOWN_Y     (GRID_Y_END + 10)   // 倒计时显示位置（网格下方??
 
 // 网格列模板预计算
 // 周期 = SMALL_GRID_SIZE + GRID_LINE_WIDTH = 13 + 2 = 15
@@ -2663,7 +2732,7 @@ static void RestoreGridColumns(uint16_t x, uint16_t width)
     const uint8_t *t0 = ecg_col_templates[xp0];
     const uint8_t *t1 = ecg_col_templates[xp1];
 
-    // LCD 行优先扫描：每行依次存 col0、col1
+    // LCD 行优先扫描：每行依次为 col0、col1
     uint32_t src = 0, dst = 0;
     for (uint16_t y = 0; y < ECG_GRID_COL_HEIGHT; y++) {
         data_buf[dst++] = t0[src];
@@ -2677,7 +2746,101 @@ static void RestoreGridColumns(uint16_t x, uint16_t width)
     DispData(ECG_RESTORE_COL_WIDTH * ECG_GRID_COL_HEIGHT * 2, data_buf);
 }
 
-// 动态显示 ECG 波形（不清屏，只恢复当前列网格）
+// 恢复单个波形点的网格背景（2x2像素）
+// 对每个像素分别判断是否在网格线上，恢复为相应颜色
+static void RestoreGridPoint(uint16_t x, uint16_t y)
+{
+    // 边界检查
+    if (x < GRID_X_START || x + 1 > GRID_X_END || y < GRID_Y_START || y + 1 > GRID_Y_END) {
+        return;
+    }
+    
+    // 准备4个像素的颜色数据（RGB565，每个像素2字节）
+    uint8_t data_buf[8];  // 2x2 * 2字节 = 8字节
+    uint16_t idx = 0;
+    
+    // 按行优先顺序填充4个像素的颜色
+    for (uint16_t dy = 0; dy < 2; dy++) {
+        for (uint16_t dx = 0; dx < 2; dx++) {
+            uint16_t px = x + dx;
+            uint16_t py = y + dy;
+            
+            // 计算该像素在网格周期中的位置
+            uint16_t xp = (px - GRID_X_START) % ECG_GRID_STRIPE_PERIOD;
+            uint16_t yp = (py - GRID_Y_START) % ECG_GRID_STRIPE_PERIOD;
+            
+            // 判断是否在网格线上
+            bool is_vcol = (xp < GRID_LINE_WIDTH);  // 是否在竖线上
+            bool is_hrow = (yp < GRID_LINE_WIDTH);  // 是否在横线上
+            
+            uint16_t color;
+            if (is_vcol || is_hrow) {
+                color = GRID_SMALL_COLOR;  // 在网格线上
+            } else {
+                color = BLACK;  // 不在网格线上
+            }
+            
+            // RGB565 高字节在前
+            data_buf[idx++] = color >> 8;
+            data_buf[idx++] = color & 0xFF;
+        }
+    }
+    
+    // 一次性写入2x2区域
+    BlockWrite(x, y, 2, 2);
+    DispData(8, data_buf);
+}
+
+// 恢复一条线段上所有点的网格背景（用于清除上一条波形线）
+// 使用与 LCD_DrawLine 相同的 Bresenham 算法遍历所有点
+static void RestoreGridLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+    uint16_t t;
+    int xerr = 0, yerr = 0, delta_x, delta_y, distance;
+    int incx, incy, uRow, uCol;
+    
+    delta_x = x2 - x1;
+    delta_y = y2 - y1;
+    uRow = x1;
+    uCol = y1;
+    
+    if (delta_x > 0) incx = 1;
+    else if (delta_x == 0) incx = 0;
+    else { incx = -1; delta_x = -delta_x; }
+    
+    if (delta_y > 0) incy = 1;
+    else if (delta_y == 0) incy = 0;
+    else { incy = -1; delta_y = -delta_y; }
+    
+    if (delta_x > delta_y) distance = delta_x;
+    else distance = delta_y;
+    
+    // 遍历线段上的所有点并恢复网格
+    for (t = 0; t <= distance + 1; t++) {
+        // 确保每个点都画 2x2 区域，需要每隔 2 像素调用一次
+        // 但要保证覆盖整个线段，所以每个点都要处理
+        RestoreGridPoint(uRow, uCol);
+        
+        xerr += delta_x;
+        yerr += delta_y;
+        if (xerr > distance) {
+            xerr -= distance;
+            uRow += incx;
+        }
+        if (yerr > distance) {
+            yerr -= distance;
+            uCol += incy;
+        }
+    }
+    
+    // 额外处理终点，防止 Bresenham 算法遗漏
+    // 因为循环条件是 t <= distance+1，可能会多走一步
+    if (uRow != x2 || uCol != y2) {
+        RestoreGridPoint(x2, y2);
+    }
+}
+
+// 动态显示 ECG 波形（不清屏，只清除当前位置的旧波形）
 static void DisplayDynamicECGPoint(int16_t value)
 {
     // Y 轴映射 - 使用宏定义的网格区域
@@ -2698,26 +2861,39 @@ static void DisplayDynamicECGPoint(int16_t value)
     if (y > GRID_Y_END) y = GRID_Y_END;
 
     /* 加锁：保证整个"清除旧点+画新点"是原子操作，不被主线程插入 */
-     LCD_Lock();  /* 需要LCD驱动层提供互斥接口时启用 */
+    LCD_Lock();
     
     // 若到达右边界 → 重新从左边开始（不清屏）
     if (s_ecg_wave_x > GRID_X_END) {
-        // 清除最右边可能残留的波形
-        RestoreGridColumns(GRID_X_END - 1, 2);
-        
         s_ecg_wave_x = GRID_X_START;
         s_ecg_prev_x = s_ecg_wave_x;
         s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
-    } else {
-        // 先清除并恢复网格背景（只恢复当前列）
-        RestoreGridColumns(s_ecg_wave_x, 2);
     }
 
-    // 设置画笔颜色为红色并画线
+    // 计算当前位置的索引
+    uint16_t idx = (s_ecg_wave_x - GRID_X_START) / 2;
+    
+    // 检查该位置是否有上一轮的旧波形，如果有则清除
+    if (idx < ECG_WAVE_HISTORY_SIZE && 
+        ecg_wave_y_history[idx] != ECG_WAVE_Y_INVALID &&
+        ecg_wave_prev_y_history[idx] != ECG_WAVE_Y_INVALID) {
+        // 清除旧的波形线段（使用记录的精确端点）
+        RestoreGridLine(ecg_wave_prev_x_history[idx], ecg_wave_prev_y_history[idx], 
+                        s_ecg_wave_x, ecg_wave_y_history[idx]);
+    }
+
+    // 设置画笔颜色为红色并画新线段
     POINT_COLOR = ECG_WAVE_COLOR;
     LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
 
     LCD_Unlock();
+
+    // 保存当前位置的y值到历史数组（供下一轮清除使用）
+    if (idx < ECG_WAVE_HISTORY_SIZE) {
+        ecg_wave_prev_x_history[idx] = s_ecg_prev_x;  // 记录起点x坐标
+        ecg_wave_prev_y_history[idx] = s_ecg_prev_y;  // 记录起点y坐标
+        ecg_wave_y_history[idx] = y;                   // 记录终点y坐标
+    }
 
     // 更新位置
     s_ecg_prev_x = s_ecg_wave_x;
@@ -2734,14 +2910,14 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
     }
 
     // 验证输入参数
-    if (data == NULL || length != 256) {
+    if (data == NULL || length != 128) {
         LOGD("Invalid ECG data: data=%p, length=%d", data, length);
         return;
     }
     
     // 256字节 = 128个int16_t，每两字节一个样本，低字节在前（Little-Endian）
     // 手动解析避免对齐问题
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < 64; i++) {
         int16_t value = (int16_t)((uint16_t)data[i * 2] | ((uint16_t)data[i * 2 + 1] << 8));
         
         // Y 轴映射 - 使用宏定义的网格区域
@@ -2764,24 +2940,35 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
         
         // 若到达右边界 → 重新从左边开始
         if (s_ecg_wave_x > GRID_X_END) {
-            // 清除最右边可能残留的波形，从 GRID_X_END-1 开始覆盖2列
-            RestoreGridColumns(GRID_X_END - 1, 2);
-            
             s_ecg_wave_x = GRID_X_START;
             s_ecg_prev_x = s_ecg_wave_x;
             s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
-            // 同时清除起始列，避免上一轮残留
-            RestoreGridColumns(GRID_X_START, 2);
-        } else {
-            // 先清除并恢复网格背景（只恢复当前列）
-            RestoreGridColumns(s_ecg_wave_x, 2);
         }
 
-        // 设置画笔颜色为红色并画线
+        // 计算当前位置的索引
+        uint16_t idx = (s_ecg_wave_x - GRID_X_START) / 2;
+        
+        // 检查该位置是否有上一轮的旧波形，如果有则清除
+        if (idx < ECG_WAVE_HISTORY_SIZE && 
+            ecg_wave_y_history[idx] != ECG_WAVE_Y_INVALID &&
+            ecg_wave_prev_y_history[idx] != ECG_WAVE_Y_INVALID) {
+            // 清除旧的波形线段（使用记录的精确端点）
+            RestoreGridLine(ecg_wave_prev_x_history[idx], ecg_wave_prev_y_history[idx], 
+                            s_ecg_wave_x, ecg_wave_y_history[idx]);
+        }
+
+        // 设置画笔颜色为红色并画新线段
         POINT_COLOR = ECG_WAVE_COLOR;
         LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
 
         //LCD_Unlock();
+
+        // 保存当前位置的y值到历史数组（供下一轮清除使用）
+        if (idx < ECG_WAVE_HISTORY_SIZE) {
+            ecg_wave_prev_x_history[idx] = s_ecg_prev_x;  // 记录起点x坐标
+            ecg_wave_prev_y_history[idx] = s_ecg_prev_y;  // 记录起点y坐标
+            ecg_wave_y_history[idx] = y;                   // 记录终点y坐标
+        }
 
         // 更新位置
         s_ecg_prev_x = s_ecg_wave_x;
@@ -2790,10 +2977,65 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
     }
 }
 
+// ECG倒计时显示函?? - 只更新数字部??
+static void EcgShowCountdown(void)
+{
+    uint8_t strbuf[32];
+    uint8_t prefix[] = "Testing Wait ";
+    uint16_t prefix_w, prefix_h;
+    uint16_t num_w, num_h;
+    uint16_t total_w, h;
+    uint16_t start_x;
+    
+    // 测量前缀宽度
+    LCD_MeasureString(prefix, &prefix_w, &prefix_h);
+    
+    if (s_ecg_countdown_first_show) {
+        // 第一次显示完整文??
+        LCD_Fill(0, ECG_COUNTDOWN_Y, LCD_WIDTH, 30, BLACK);
+        if (s_ecg_countdown_seconds > 0) {
+            sprintf(strbuf, "Testing Wait %ds", s_ecg_countdown_seconds);
+        } else {
+            sprintf(strbuf, "Testing Complete");
+        }
+        LCD_MeasureString(strbuf, &total_w, &h);
+        POINT_COLOR = WHITE;
+        LCD_ShowString((LCD_WIDTH - total_w) / 2, ECG_COUNTDOWN_Y, strbuf);
+        s_ecg_countdown_first_show = false;
+    } else {
+        // 后续只更新数字部??
+        if (s_ecg_countdown_seconds > 0) {
+            // 计算数字区域的X坐标（居中）
+            sprintf(strbuf, "%d", s_ecg_countdown_seconds);
+            LCD_MeasureString(strbuf, &num_w, &num_h);
+            total_w = prefix_w + num_w + 8; // 8??"s"的宽度估??
+            start_x = (LCD_WIDTH - total_w) / 2 + prefix_w;
+            
+            // 清除固定宽度的数字区域（足以覆盖"60s"的最大宽度）
+            // 测量"60s"的宽度作为最大清除区??
+            uint16_t max_num_w, max_h;
+            LCD_MeasureString("60s", &max_num_w, &max_h);
+            LCD_Fill(start_x - 2, ECG_COUNTDOWN_Y, max_num_w + 4, prefix_h, BLACK);
+            
+            // 只显示数字和"s"
+            POINT_COLOR = WHITE;
+            sprintf(strbuf, "%ds", s_ecg_countdown_seconds);
+            LCD_ShowString(start_x, ECG_COUNTDOWN_Y, strbuf);
+        } else {
+            // 倒计时结束，显示完成文本
+            LCD_Fill(0, ECG_COUNTDOWN_Y, LCD_WIDTH, 30, BLACK);
+            sprintf(strbuf, "Testing Complete");
+            LCD_MeasureString(strbuf, &total_w, &h);
+            POINT_COLOR = WHITE;
+            LCD_ShowString((LCD_WIDTH - total_w) / 2, ECG_COUNTDOWN_Y, strbuf);
+        }
+    }
+}
+
 // 初始化ECG显示
 void EcgDisplayInit(void)
 {
-    // 预计算网格列模板（仅在模板未就绪时执行，避免重复计算）
+    // 预计算网格列模板（仅在模板未就绪时执行，避免重复计算??
     if (!ecg_col_templates_ready) {
         EcgPrecomputeColTemplates();
     }
@@ -2805,6 +3047,21 @@ void EcgDisplayInit(void)
     s_ecg_wave_x = GRID_X_START;
     s_ecg_prev_x = s_ecg_wave_x;
     s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
+    
+    // 初始化波形历史数组（全部设为无效）
+    for (uint16_t i = 0; i < ECG_WAVE_HISTORY_SIZE; i++) {
+        ecg_wave_y_history[i] = ECG_WAVE_Y_INVALID;
+        ecg_wave_prev_x_history[i] = ECG_WAVE_Y_INVALID;
+        ecg_wave_prev_y_history[i] = ECG_WAVE_Y_INVALID;
+    }
+    
+    // 初始化并显示倒计??
+    s_ecg_countdown_seconds = 35;
+    s_ecg_countdown_first_show = true;
+    EcgShowCountdown();
+    
+    // 启动倒计时定时器（每秒更新一次）
+    k_timer_start(&ecg_countdown_timer, K_SECONDS(1), K_SECONDS(1));
     
     //LOGD("ECG display initialized");
 }
@@ -2850,6 +3107,8 @@ void EcgScreenProcess(void)
 		EcgShowStatus();
 		// 初始化ECG显示
 		EcgDisplayInit();
+		// Reset lead status to unknown when entering ECG screen
+		g_ecg_lead_status = ECG_LEAD_STATUS_UNKNOWN;
 		break;
 		
 	case SCREEN_ACTION_UPDATE:
@@ -2873,21 +3132,46 @@ void EcgScreenProcess(void)
 			scr_msg[SCREEN_ID_ECG].para &= (~SCREEN_EVENT_UPDATE_BP);
 			EcgUpdateStatus();
 		}
+		if(scr_msg[SCREEN_ID_ECG].para&SCREEN_EVENT_UPDATE_ECG_TIMER)
+		{
+			scr_msg[SCREEN_ID_ECG].para &= (~SCREEN_EVENT_UPDATE_ECG_TIMER);
+			EcgShowCountdown();
+		}
+		if(scr_msg[SCREEN_ID_ECG].para&SCREEN_EVENT_UPDATE_ECG_LEAD)
+		{
+			scr_msg[SCREEN_ID_ECG].para &= (~SCREEN_EVENT_UPDATE_ECG_LEAD);
+			EcgShowLeadStatus();
+		}
 		break;
 	}
 	
 	scr_msg[SCREEN_ID_ECG].act = SCREEN_ACTION_NO;
 }
 
-static void EcgStartTimerOutCallBack(struct k_timer *timer_id)
+// ECG倒计时定时器回调 - 只减少计数，不操作LCD
+static void EcgCountdownTimerCallBack(struct k_timer *timer_id)
 {
-	MenuStartECG();
+    if (s_ecg_countdown_seconds > 0) {
+        s_ecg_countdown_seconds--;
+        // 只在ECG屏幕可见时发送更新事??
+        if (screen_id == SCREEN_ID_ECG) {
+            scr_msg[SCREEN_ID_ECG].act = SCREEN_ACTION_UPDATE;
+            scr_msg[SCREEN_ID_ECG].para |= SCREEN_EVENT_UPDATE_ECG_TIMER;  
+        }
+    }
+    
+    // 如果倒计时结束，停止定时??
+    if (s_ecg_countdown_seconds == 0) {
+        k_timer_stop(&ecg_countdown_timer);
+    }
 }
+
 void ExitEcgScreen(void)
 {
 	LOGD("Exit ECG screen");
-	// 停止ECG启动定时器
-	k_timer_stop(&ecg_start_timer);
+
+	// 停止倒计时定时器
+	k_timer_stop(&ecg_countdown_timer);
 
 	// 停止ECG采集
 	MenuStopECG();
@@ -2899,6 +3183,13 @@ void ExitEcgScreen(void)
 	s_ecg_wave_x = ECG_WAVE_X_START;
 	s_ecg_prev_x = ECG_WAVE_X_START;
 	s_ecg_prev_y = ECG_WAVE_Y_START + (uint16_t)(ECG_WAVE_HEIGHT * 0.5);
+	
+	// 重置波形历史数组
+	for (uint16_t i = 0; i < ECG_WAVE_HISTORY_SIZE; i++) {
+		ecg_wave_y_history[i] = ECG_WAVE_Y_INVALID;
+		ecg_wave_prev_x_history[i] = ECG_WAVE_Y_INVALID;
+		ecg_wave_prev_y_history[i] = ECG_WAVE_Y_INVALID;
+	}
 
 	ecg_local_read_idx = 0;
 	ecg_local_write_idx = 0;
@@ -2906,7 +3197,7 @@ void ExitEcgScreen(void)
 	LCD_Set_BL_Mode(LCD_BL_AUTO);
 
 	// 注意：不要在这里调用 EnterIdleScreen()，
-	// 因为 EnterIdleScreen 内部会再次调用 ExitEcgScreen 导致递归栈溢出
+	// 因为 EnterIdleScreen 内部会再次调?? ExitEcgScreen 导致递归栈溢??
 	// 界面跳转应该由调用方（按键处理函数）负责
 }
 
@@ -2975,8 +3266,8 @@ void EnterEcgScreen(void)
 	register_touch_event_handle(TP_EVENT_MOVING_RIGHT, 0, LCD_WIDTH, 0, LCD_HEIGHT, EnterIdleScreen);
   #endif
 #endif
-	// 1秒后启动ECG测量
-	k_timer_start(&ecg_start_timer, K_SECONDS(1), K_NO_WAIT);
+	// 直接启动ECG测量
+	MenuStartECG();
 }
 
 #endif

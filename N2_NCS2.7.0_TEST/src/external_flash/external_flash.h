@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include "font.h"
+#include "temp.h"
 
 //SPI引脚定义
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi3), okay)
@@ -34,10 +35,11 @@
 #define FLASH_MOSI_PIN		(15)
 #define FLASH_MISO_PIN		(12)
 
-//W25Q64 ID
+//华邦Flash ID
 #define	W25Q64DW_ID		0xEF16
 #define	W25Q128JW_ID	0xEF17
-
+//旺宏Flash ID
+#define MX25R6435F_ID	0xC217
 
 //SPI Flash命令定义
 #define	SPIFlash_WriteEnable	0x06  //写使能命令
@@ -90,16 +92,16 @@
 #define FONT_EN_UNI_16_SIZE					(26452)
 #define FONT_EN_UNI_16_END					(FONT_EN_UNI_16_ADDR+FONT_EN_UNI_16_SIZE)
 
-#define FONT_EN_UNI_20_ADDR					(FONT_DATA_ADDR)
-#define FONT_EN_UNI_20_SIZE					(1179456)
+#define FONT_EN_UNI_20_ADDR					(FONT_EN_UNI_16_END)
+#define FONT_EN_UNI_20_SIZE					(1177116)
 #define FONT_EN_UNI_20_END					(FONT_EN_UNI_20_ADDR+FONT_EN_UNI_20_SIZE)
 
 #define FONT_EN_UNI_28_ADDR					(FONT_EN_UNI_20_END)
-#define FONT_EN_UNI_28_SIZE					(1770150)
+#define FONT_EN_UNI_28_SIZE					(2203276)
 #define FONT_EN_UNI_28_END					(FONT_EN_UNI_28_ADDR+FONT_EN_UNI_28_SIZE)
 
 #define FONT_EN_UNI_36_ADDR					(FONT_EN_UNI_28_END)
-#define FONT_EN_UNI_36_SIZE					(3600816)
+#define FONT_EN_UNI_36_SIZE					(76508)
 #define FONT_EN_UNI_36_END					(FONT_EN_UNI_36_ADDR+FONT_EN_UNI_36_SIZE)
 
 #define FONT_EN_UNI_52_ADDR					(FONT_EN_UNI_36_END)
@@ -115,7 +117,7 @@
 
 /************************************************ppg algo begin******************************************************/
 //PPG算法 flash里占用384K的空间(0xF00000~0xF5FFFF)
-#define PPG_ALGO_START_ADDR					0x780000
+#define PPG_ALGO_START_ADDR					0xF00000
 
 #define PPG_ALGO_VER_ADDR					PPG_ALGO_START_ADDR
 #define PPG_ALGO_VER_SIZE					(16)

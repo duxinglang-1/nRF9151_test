@@ -88,8 +88,7 @@ font_uni_infor uni_infor = {0};
 #ifndef IMG_FONT_FROM_FLASH
 void LCD_ShowImg_From_Flash(uint16_t x, uint16_t y, uint32_t img_addr){};
 void LCD_MeasureUniString(uint16_t *p, uint16_t *width, uint16_t *height){};
-void LCD_ShowUniString(uint16_t x, uint16_t y, uint16_t *p)
-{};
+void LCD_ShowUniString(uint16_t x, uint16_t y, uint16_t *p){};
 void LCD_ShowUniStringInRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *p){};
 void LCD_get_pic_size_from_flash(uint32_t pic_addr, uint16_t *width, uint16_t *height){};
 #endif
@@ -414,9 +413,6 @@ uint8_t LCD_Show_Uni_Char_from_flash(uint16_t x, uint16_t y, uint16_t num, uint8
 		csize = ((cbyte+7)/8)*uni_infor.head.not_fixed.bbx.height;
 		SpiFlash_Read(fontbuf, font_addr+uni_infor.index.font_addr, csize+sizeof(sbn_glyph_t));
 		memcpy((sbn_glyph_t*)&sbn_glyph, fontbuf, sizeof(sbn_glyph_t));
-		LOGD("width:%d, height:%d, x_offset:%d, y_offset:%d, dwidth:%d, bytes:%d", 
-					sbn_glyph.bbx.width, sbn_glyph.bbx.height, sbn_glyph.bbx.x_offset, sbn_glyph.bbx.y_offset, 
-					sbn_glyph.dwidth, sbn_glyph.bytes);
 		w = sbn_glyph.bbx.width;
 		//if(w%2 != 0)
 		//	w += 1;
@@ -427,9 +423,6 @@ uint8_t LCD_Show_Uni_Char_from_flash(uint16_t x, uint16_t y, uint16_t num, uint8
 		csize = sbn_glyph.bytes;
 
 		p_font = &fontbuf[7];
-		LOGD("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",
-				fontbuf[0],fontbuf[1],fontbuf[2],fontbuf[3],fontbuf[4],fontbuf[5],fontbuf[6],fontbuf[7],fontbuf[8],fontbuf[9],
-				fontbuf[10],fontbuf[11],fontbuf[12],fontbuf[13],fontbuf[14],fontbuf[15],fontbuf[16],fontbuf[17],fontbuf[18],fontbuf[19]);
 		if(fixed_type == FONT_NOT_FIXED)
 		{
 			x = x + sbn_glyph.bbx.x_offset;

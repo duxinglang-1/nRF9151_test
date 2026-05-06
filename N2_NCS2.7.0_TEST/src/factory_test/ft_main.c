@@ -471,11 +471,11 @@ static void FactoryTestMainUpdate(void)
 	{
 		if((FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG) + i) >= ft_menu.count)
 			break;
-		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
+		LCD_ShowImage(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
 		LCD_SetFontColor(WHITE);
 	
 		LCD_ShowUniString(FT_MENU_STR_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y)+FT_MENU_STR_OFFSET_Y, ft_menu.item[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)].name);
-		LCD_ShowImg_From_Flash(FT_MENU_CHECKED_X, FT_MENU_CHECKED_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), img_addr[ft_menu_checked[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)]]);
+		LCD_ShowImage(FT_MENU_CHECKED_X, FT_MENU_CHECKED_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), img_addr[ft_menu_checked[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)]]);
 	
 	#ifdef CONFIG_TOUCH_SUPPORT
 		register_touch_event_handle(TP_EVENT_SINGLE_CLICK, 
@@ -536,10 +536,10 @@ static void FactoryTestMainShow(void)
 	{
 		if((FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG) + i) >= ft_menu.count)
 			break;
-		LCD_ShowImg_From_Flash(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
+		LCD_ShowImage(FT_MENU_BG_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
 		LCD_SetFontColor(WHITE);
 		LCD_ShowUniString(FT_MENU_STR_X, FT_MENU_BG_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y)+FT_MENU_STR_OFFSET_Y, ft_menu.item[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)].name);
-		LCD_ShowImg_From_Flash(FT_MENU_CHECKED_X, FT_MENU_CHECKED_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), img_addr[ft_menu_checked[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)]]);
+		LCD_ShowImage(FT_MENU_CHECKED_X, FT_MENU_CHECKED_Y+i*(FT_MENU_BG_H+FT_MENU_BG_OFFSET_Y), img_addr[ft_menu_checked[i+FT_MAIN_MENU_MAX_PER_PG*(ft_menu.index/FT_MAIN_MENU_MAX_PER_PG)]]);
 		
 	#ifdef CONFIG_TOUCH_SUPPORT
 		register_touch_event_handle(TP_EVENT_SINGLE_CLICK, 

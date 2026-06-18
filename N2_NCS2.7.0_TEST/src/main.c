@@ -532,9 +532,6 @@ int main(void)
 	#ifdef CONFIG_BLE_SUPPORT
 		BLEMsgProcess();
 	#endif
-	#ifdef CONFIG_ECG_SUPPORT
-		ECGMsgProcess();
-	#endif
 	#ifdef CONFIG_IMU_SUPPORT	
 		IMUMsgProcess();
 	#ifdef CONFIG_FALL_DETECT_SUPPORT
@@ -543,6 +540,9 @@ int main(void)
 	#endif
 	#ifdef CONFIG_PPG_SUPPORT	
 		PPGMsgProcess();
+	#endif
+	#ifdef CONFIG_ECG_SUPPORT
+		ECGMsgProcess();
 	#endif
 	#ifdef CONFIG_PRESSURE_SUPPORT
 		PressureMsgProcess();

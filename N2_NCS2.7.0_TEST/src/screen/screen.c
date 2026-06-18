@@ -3213,6 +3213,12 @@ void EnterEcgScreen(void)
 		return;
 
 	k_timer_stop(&mainmenu_timer);
+#ifdef CONFIG_PPG_SUPPORT
+	k_timer_stop(&ppg_status_timer);
+#endif
+#ifdef CONFIG_TEMP_SUPPORT
+	k_timer_stop(&temp_status_timer);
+#endif
 
 #ifdef CONFIG_ANIMATION_SUPPORT
 	AnimaStop();

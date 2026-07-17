@@ -517,7 +517,10 @@ extern "C" {
 #define TEMP_DOWN_STR_Y				356
 
 //ecg
-
+#define ECG_PREPARE_ICON_X			HR_ICON_X
+#define ECG_PREPARE_ICON_Y			HR_ICON_Y
+#define ECG_PREPARE_STR_X			HR_STR_X
+#define ECG_PREPARE_STR_Y			HR_NOTIFY_Y
 
 //settings
 #define SETTINGS_MAIN_MENU_MAX_PER_PG	4
@@ -773,6 +776,8 @@ extern void EnterMainMenuScreen(void);
 extern void EcgDisplayInit(void);
 extern void EcgDisplayDeinit(void);
 extern void EcgDisplayProcessData(const uint8_t *data, uint16_t length);
+// 立即冻结ECG波形绘制（供导联脱落快速通道调用，阻断后续EcgDisplayProcessData）
+extern void EcgHaltDisplay(void);
 #ifdef __cplusplus
 }
 #endif

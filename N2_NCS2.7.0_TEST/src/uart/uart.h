@@ -38,5 +38,7 @@ extern void MCU_get_ble_mac_address(void);
 extern void MCU_get_ble_status(void);
 extern void MCU_set_ble_work_mode(uint8_t work_mode);
 extern void MCU_send_find_phone(void);
+extern void ClearUartReceCache(void);
+extern void CopcsSendData(UART_DATA_TYPE type, uint8_t *data, uint32_t datalen);
 
 #endif/*__UART_BLE_H__*/

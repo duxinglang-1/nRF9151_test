@@ -74,6 +74,8 @@
 // External ECG lead status variable
 #ifdef CONFIG_ECG_SUPPORT
 extern ECG_LEAD_STATUS g_ecg_lead_status;
+extern struct k_timer ecg_lead_on_timer;
+extern struct k_timer ecg_lead_off_timer;
 #endif
 
 static uint8_t scr_index = 0;
@@ -1374,7 +1376,8 @@ void SettingsUpdateStatus(void)
 	{
 	case SETTINGS_MENU_MAIN:
 		{
-			uint16_t level_str[4] = {STR_ID_LEVEL_1, STR_ID_LEVEL_2, STR_ID_LEVEL_3, STR_ID_LEVEL_4};			
+			uint16_t level_str[4] = {STR_ID_LEVEL_1, STR_ID_LEVEL_2, STR_ID_LEVEL_3, STR_ID_LEVEL_4};
+			uint16_t wear_way_str[2] = {STR_ID_WEAR_LEFT, STR_ID_WEAR_RIGHT};
 			uint32_t img_addr[2] = {IMG_ID_SET_TEMP_UNIT_C_ICON, IMG_ID_SET_TEMP_UNIT_F_ICON};
 
 			entry_setting_bk_flag = false;
@@ -1451,23 +1454,24 @@ void SettingsUpdateStatus(void)
 											img_addr[global_settings.temp_unit]);
 						break;
 					case 3:
-					#ifdef LANGUAGE_AR_ENABLE
+						LCD_MeasureUniStr(wear_way_str[global_settings.wear_way], &w, &h);
+					#ifdef LANGUAGE_AR_ENABLE	
 						if(g_language_r2l)
-							LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X),
-											SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_LEFT_ARROW_H)/2, 
-											IMG_ID_SET_L_ARROW);
+							LCD_SmartShowUniStr(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-w),
+												SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+												wear_way_str[global_settings.wear_way]);
 						else
 					#endif		
-							LCD_ShowImage(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_RIGHT_ARROW_W, 
-											SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_RIGHT_ARROW_H)/2,
-											IMG_ID_SET_R_ARROW);
-						break;	
+							LCD_ShowUniStr(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-w,
+												SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+												wear_way_str[global_settings.wear_way]);
+						break;
 					}
 					break;
 				case 4:
 					switch(i)
 					{
-					case 0:
+					case 1:
 					#ifdef LANGUAGE_AR_ENABLE
 						if(g_language_r2l)
 							LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X), 
@@ -1479,8 +1483,9 @@ void SettingsUpdateStatus(void)
 											SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_QR_ICON_H)/2,
 											IMG_ID_SET_QR_ICON);
 						break;
-					case 1:
+					case 0:
 					case 2:
+					case 3:
 					#ifdef LANGUAGE_AR_ENABLE
 						if(g_language_r2l)
 							LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X), 
@@ -1658,7 +1663,7 @@ void SettingsUpdateStatus(void)
 			}
 		}
 		break;
-		
+
 	case SETTINGS_MENU_FACTORY_RESET:
 		{
 			static RES_LANGUAGES_ID language_bk = LANGUAGE_MAX;
@@ -1926,7 +1931,74 @@ void SettingsUpdateStatus(void)
 			}
 		}
 		break;
-		
+
+	case SETTINGS_MENU_WEAR:
+		{
+			LCD_Clear(BLACK);
+			LCD_SetFontColor(WHITE);
+		#ifdef FONTMAKER_UNICODE_FONT
+			LCD_SetFontSize(FONT_SIZE_28);
+		#else
+			LCD_SetFontSize(FONT_SIZE_16);
+		#endif
+
+			for(i=0;i<settings_menu.count;i++)
+			{
+				LCD_ShowImage(SETTINGS_MENU_BG_X, SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y), IMG_ID_SET_MENU_BG);
+
+				if(i == global_settings.wear_way)
+				{
+				#ifdef LANGUAGE_AR_ENABLE
+					if(g_language_r2l)
+						LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_SEL_DOT_W), 
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_SEL_DOT_H)/2, 
+										IMG_ID_SELECT_ICON_YES);
+					else
+				#endif		
+						LCD_ShowImage(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_SEL_DOT_W, 
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_SEL_DOT_H)/2,
+										IMG_ID_SELECT_ICON_YES);
+				}
+				else
+				{
+				#ifdef LANGUAGE_AR_ENABLE
+					if(g_language_r2l)
+						LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_SEL_DOT_W), 
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_SEL_DOT_H)/2, 
+										IMG_ID_SELECT_ICON_NO);
+					else
+				#endif		
+						LCD_ShowImage(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_SEL_DOT_W, 
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_SEL_DOT_H)/2,
+										IMG_ID_SELECT_ICON_NO);
+				}
+				
+			#ifdef FONTMAKER_UNICODE_FONT
+				LCD_MeasureUniStr(settings_menu.name[i], &w, &h);
+			  #ifdef LANGUAGE_AR_ENABLE	
+				if(g_language_r2l)
+					LCD_SmartShowUniStr(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_STR_OFFSET_X),
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+										settings_menu.name[i]);
+				else
+			  #endif
+					LCD_ShowUniStr(SETTINGS_MENU_BG_X+SETTINGS_MENU_STR_OFFSET_X,
+										SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+										settings_menu.name[i]);
+			#endif
+
+			#ifdef CONFIG_TOUCH_SUPPORT
+				register_touch_event_handle(TP_EVENT_SINGLE_CLICK, 
+											SETTINGS_MENU_BG_X, 
+											SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W, 
+											SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y), 
+											SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+SETTINGS_MENU_BG_H, 
+											settings_menu.sel_handler[i]);
+			#endif
+			}
+		}
+		break;
+
 	case SETTINGS_MENU_DEVICE:
 		{
 			uint16_t imei_str[IMEI_MAX_LEN+1] = {0};
@@ -2090,6 +2162,7 @@ void SettingsShowStatus(void)
 {
 	uint16_t i,x,y,w,h;
 	uint16_t level_str[4] = {STR_ID_LEVEL_1, STR_ID_LEVEL_2, STR_ID_LEVEL_3, STR_ID_LEVEL_4};
+	uint16_t wear_way_str[2] = {STR_ID_WEAR_LEFT, STR_ID_WEAR_RIGHT};
 	uint32_t img_addr[2] = {IMG_ID_SET_TEMP_UNIT_C_ICON, IMG_ID_SET_TEMP_UNIT_F_ICON};
 	uint16_t bg_clor = 0x2124;
 	uint16_t green_clor = 0x07e0;
@@ -2159,17 +2232,18 @@ void SettingsShowStatus(void)
 								img_addr[global_settings.temp_unit]);
 			break;
 		case 3:
-		#ifdef LANGUAGE_AR_ENABLE
+			LCD_MeasureUniStr(wear_way_str[global_settings.wear_way], &w, &h);
+		#ifdef LANGUAGE_AR_ENABLE	
 			if(g_language_r2l)
-				LCD_ShowImage(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X), 
-								SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_LEFT_ARROW_H)/2, 
-								IMG_ID_SET_L_ARROW);
+				LCD_SmartShowUniStr(LCD_WIDTH-(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-w),
+									SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+									wear_way_str[global_settings.wear_way]);
 			else
 		#endif		
-				LCD_ShowImage(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-SETTINGS_MENU_RIGHT_ARROW_W, 
-								SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-SETTINGS_MENU_RIGHT_ARROW_H)/2,
-								IMG_ID_SET_R_ARROW);
-			break;	
+				LCD_ShowUniStr(SETTINGS_MENU_BG_X+SETTINGS_MENU_BG_W-SETTINGS_MENU_STR_OFFSET_X-w,
+									SETTINGS_MENU_BG_Y+i*(SETTINGS_MENU_BG_H+SETTINGS_MENU_BG_OFFSET_Y)+(SETTINGS_MENU_BG_H-h)/2,
+									wear_way_str[global_settings.wear_way]);
+			break;
 		}
 	#endif	
 
@@ -2589,24 +2663,56 @@ void EcgShowLeadStatus(void)
 
 void EcgShowStatus(void)
 {
-	uint16_t i,x,y,w,h;
+	uint16_t x,y,w,h;
 	uint8_t tmpbuf[128] = {0};
 
+	if(g_ecg_display_phase == ECG_DISPLAY_PREPARE)
+	{
+		// Show heart icon in center (reference HR screen)
+		LCD_ShowImage(ECG_PREPARE_ICON_X, ECG_PREPARE_ICON_Y, IMG_ID_HR_ANI_2);
+
+		// Show "ECG" text at bottom
+		LCD_SetFontSize(FONT_SIZE_36);
+
+		LCD_MeasureUniStr(STR_ID_MAIN_MENU_ECG, &w, &h);
+#ifdef LANGUAGE_AR_ENABLE
+		if(g_language_r2l)
+			LCD_ShowUniStrRtoL(HR_NOTIFY_X+(HR_NOTIFY_W+w)/2, ECG_PREPARE_STR_Y, STR_ID_MAIN_MENU_ECG);
+		else
+#endif
+			LCD_ShowUniStr(HR_NOTIFY_X+(HR_NOTIFY_W-w)/2, ECG_PREPARE_STR_Y, STR_ID_MAIN_MENU_ECG);
+			
+			// Show hint text at screen bottom (two lines)
+			LCD_SetFontSize(FONT_SIZE_28);
+			{
+				uint8_t *line1 = (uint8_t *)"Please place your finger";
+				uint8_t *line2 = (uint8_t *)"on the metal plate.";
+				uint16_t w1, h1, w2, h2;
+				POINT_COLOR = WHITE;
+				LCD_MeasureString(line1, &w1, &h1);
+				LCD_MeasureString(line2, &w2, &h2);
+				LCD_ShowString((LCD_WIDTH - w1) / 2, LCD_HEIGHT - h1 - h2 - 55, line1);
+				LCD_ShowString((LCD_WIDTH - w2) / 2, LCD_HEIGHT - h2 - 50, line2);
+			}
+	}
+	else
+	{
+		// Waveform mode - clear status area
   #ifdef FONTMAKER_UNICODE_FONT
-	LCD_SetFontSize(FONT_SIZE_28);
-  #else	
-	LCD_SetFontSize(FONT_SIZE_24);
+		LCD_SetFontSize(FONT_SIZE_28);
+  #else
+		LCD_SetFontSize(FONT_SIZE_24);
   #endif
 
-	mmi_asc_to_ucs2(tmpbuf, "");
-	LCD_MeasureUniString(tmpbuf, &w, &h);
-#ifdef LANGUAGE_AR_ENABLE	
-	if(g_language_r2l)
-		LCD_ShowUniStringRtoL(BP_NOTIFY_X+(BP_NOTIFY_W+w)/2, BP_NOTIFY_Y, tmpbuf);
-	else
-#endif		
-		LCD_ShowUniString(BP_NOTIFY_X+(BP_NOTIFY_W-w)/2, BP_NOTIFY_Y, tmpbuf);
-
+		mmi_asc_to_ucs2(tmpbuf, "");
+		LCD_MeasureUniString(tmpbuf, &w, &h);
+#ifdef LANGUAGE_AR_ENABLE
+		if(g_language_r2l)
+			LCD_ShowUniStringRtoL(BP_NOTIFY_X+(BP_NOTIFY_W+w)/2, BP_NOTIFY_Y, tmpbuf);
+		else
+#endif
+			LCD_ShowUniString(BP_NOTIFY_X+(BP_NOTIFY_W-w)/2, BP_NOTIFY_Y, tmpbuf);
+	}
 }
 
 // ECG波形显示区域定义
@@ -2615,6 +2721,8 @@ void EcgShowStatus(void)
 #define ECG_WAVE_Y_START    75                  // 波形区域与网格顶部对??
 #define ECG_WAVE_HEIGHT     285                 // 波形区域高度与网格一??
 #define ECG_WAVE_COLOR      RED
+#define ECG_SAMPLES_PER_PACKET  32                  // 每包采样点数（0.25秒数据，32个int16_t）
+#define ECG_DATA_PACKET_SIZE    (ECG_SAMPLES_PER_PACKET * sizeof(int16_t))  // 64字节
 #define GRID_SMALL_COLOR    GRAY
 #define SMALL_GRID_SIZE     20                  // 小网格尺寸（格子内宽??
 #define GRID_LINE_WIDTH     2                   // 网格线宽??
@@ -2642,6 +2750,8 @@ static int16_t ecg_local_buffer[ECG_LOCAL_BUFFER_SIZE];
 static volatile uint16_t ecg_local_read_idx = 0;
 static volatile uint16_t ecg_local_write_idx = 0;
 static volatile bool ecg_local_buffer_full = false;
+// ECG绘制使能标志，用于ExitEcgScreen时立即阻断正在进行的EcgDisplayProcessData
+static volatile bool g_ecg_display_active = false;
 
 // 波形绘制状态
 static uint16_t s_ecg_wave_x = ECG_WAVE_X_START;
@@ -2666,8 +2776,10 @@ K_TIMER_DEFINE(ecg_countdown_timer, EcgCountdownTimerCallBack, NULL);
 // 网格列模板预计算
 // 周期 = SMALL_GRID_SIZE + GRID_LINE_WIDTH = 13 + 2 = 15
 #define ECG_GRID_STRIPE_PERIOD  (SMALL_GRID_SIZE + GRID_LINE_WIDTH)  // 15
-// 每列模板高度多1行，防止LCD_DrawLine斜线在GRID_Y_END+1处残留
-#define ECG_GRID_COL_HEIGHT     (GRID_PIXEL_HEIGHT + 1)              // 288
+// 每列模板高度多2行，防止LCD_DrawLine斜线在GRID_Y_END+1处残留
+// +2而非+1：屏幕硬件要2像素对齐，起始y=75(奇)+高度290(偶)=结束y=364(偶)
+// 硬件已确保波形在y=362时的下半2x2(y=363)能被彻底清除
+#define ECG_GRID_COL_HEIGHT     (GRID_PIXEL_HEIGHT + 2)              // 290
 // 每个模板 1 列 * ECG_GRID_COL_HEIGHT * 2 字节
 static uint8_t ecg_col_templates[ECG_GRID_STRIPE_PERIOD][ECG_GRID_COL_HEIGHT * 2];
 static bool ecg_col_templates_ready = false;
@@ -2750,8 +2862,8 @@ static void RestoreGridColumns(uint16_t x, uint16_t width)
 // 对每个像素分别判断是否在网格线上，恢复为相应颜色
 static void RestoreGridPoint(uint16_t x, uint16_t y)
 {
-    // 边界检查
-    if (x < GRID_X_START || x + 1 > GRID_X_END || y < GRID_Y_START || y + 1 > GRID_Y_END) {
+    // 边界检查（允许2x2像素块覆盖到GRID_Y_END+1，因为屏幕需要2像素对齐）
+    if (x < GRID_X_START || x + 1 > GRID_X_END || y < GRID_Y_START || y > GRID_Y_END) {
         return;
     }
     
@@ -2789,6 +2901,77 @@ static void RestoreGridPoint(uint16_t x, uint16_t y)
     // 一次性写入2x2区域
     BlockWrite(x, y, 2, 2);
     DispData(8, data_buf);
+}
+
+
+// 批量清除的分块大小（每次处理4列，约2.3KB缓冲区）
+#define ECG_BATCH_CHUNK_COLUMNS  4
+
+// 批量清除多列网格背景（分块处理，避免大缓冲区）
+static void EcgBatchRestoreColumns(uint16_t start_x, uint16_t width)
+{
+    if (!ecg_col_templates_ready || width == 0) {
+        return;
+    }
+    
+    // 边界检查
+    if (start_x < GRID_X_START || start_x + width > GRID_X_END + 1) {
+        return;
+    }
+    
+    // 使用静态缓冲区存储单块数据（4列 * 288行 * 2字节 = 2,304字节）
+    static uint8_t chunk_buf[ECG_BATCH_CHUNK_COLUMNS * ECG_GRID_COL_HEIGHT * 2];
+    
+    // 分块处理
+    uint16_t processed = 0;
+    while (processed < width) {
+        uint16_t chunk_width = width - processed;
+        if (chunk_width > ECG_BATCH_CHUNK_COLUMNS) {
+            chunk_width = ECG_BATCH_CHUNK_COLUMNS;
+        }
+        
+        uint16_t cur_x = start_x + processed;
+        uint32_t dst_idx = 0;
+        
+        // 按行交织写入：每行依次写入当前块的所有列
+        for (uint16_t y = 0; y < ECG_GRID_COL_HEIGHT; y++) {
+            for (uint16_t col = 0; col < chunk_width; col++) {
+                uint16_t x = cur_x + col;
+                uint16_t xp = (x - GRID_X_START) % ECG_GRID_STRIPE_PERIOD;
+                const uint8_t *tmpl = ecg_col_templates[xp];
+                
+                chunk_buf[dst_idx++] = tmpl[y * 2];
+                chunk_buf[dst_idx++] = tmpl[y * 2 + 1];
+            }
+        }
+        
+        // 写入当前块
+        BlockWrite(cur_x, GRID_Y_START, chunk_width, ECG_GRID_COL_HEIGHT);
+        DispData(chunk_width * ECG_GRID_COL_HEIGHT * 2, chunk_buf);
+        
+        processed += chunk_width;
+    }
+}
+
+// 批量绘制波形线段结构
+typedef struct {
+    uint16_t x1, y1;  // 起点
+    uint16_t x2, y2;  // 终点
+} EcgLineSegment;
+
+
+// 由于旧波形已批量清除，这里只需绘制新波形
+static void EcgBatchDrawWaveSegments(EcgLineSegment *segments, uint16_t count, uint16_t color)
+{
+    if (count == 0) return;
+    
+    POINT_COLOR = color;
+    
+    // 直接逐条线段绘制
+    for (uint16_t seg = 0; seg < count; seg++) {
+        LCD_DrawLine(segments[seg].x1, segments[seg].y1, 
+                     segments[seg].x2, segments[seg].y2);
+    }
 }
 
 // 恢复一条线段上所有点的网格背景（用于清除上一条波形线）
@@ -2840,13 +3023,42 @@ static void RestoreGridLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
     }
 }
 
+// ECG 波形快速绘制开关：1=两列 FillColor（每段 2 次 BlockWrite），0=原 Bresenham LCD_DrawLine
+// 适用前提：ECG segment 的 x 跨度固定 = 2（s_ecg_wave_x += 2）
+#define ECG_FAST_DRAW_LINE  1
+
+// ECG 波形动画节拍：每画完一段 segment 后的延时 (ms)
+// 5340 每 0.25s 推 32 点 → 32 × 7ms ≈ 224ms，和数据到达节拍匹配，视觉上波形“连续流动”
+// 改小 = 更快更近闪现；改大 = 更慢，当大于 7-8ms 时要注意不要超过 250ms 导致数据积压
+// 注意：值过小（<=5ms）会导致绝大多数时间空闲，UART/屏幕事件与其它任务竞争反而容易积压
+#define ECG_RENDER_INTERVAL_MS  7
+
+#if ECG_FAST_DRAW_LINE
+// 用两列垂直段拼接替代 Bresenham：在 x1 列画 y1→y_mid，在 x2 列画 y_mid→y2
+// 每段仅 2 次 BlockWrite，相比原 ~21 次有显著提速（并口 LCD 每次 BlockWrite 约 89 次 GPIO）
+// 注：本屏幕“打点必须占 2 像素”，所以每列宽度固定用 2（与原 LCD_Fast_DrawPoint 2x2 行为一致）
+static void EcgDrawWaveSegment(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+    uint16_t y_mid  = (uint16_t)(((uint32_t)y1 + (uint32_t)y2) >> 1);
+    uint16_t a_top  = (y1 < y_mid) ? y1 : y_mid;
+    uint16_t a_span = ((y1 < y_mid) ? (y_mid - y1) : (y1 - y_mid)) + 1;
+    uint16_t b_top  = (y_mid < y2) ? y_mid : y2;
+    uint16_t b_span = ((y_mid < y2) ? (y2 - y_mid) : (y_mid - y2)) + 1;
+    LCD_FillColor(x1, a_top, 2, a_span, ECG_WAVE_COLOR);
+    LCD_FillColor(x2, b_top, 2, b_span, ECG_WAVE_COLOR);
+}
+// #define ECG_WAVE_DRAWLINE(x1, y1, x2, y2)  EcgDrawWaveSegment((x1), (y1), (x2), (y2))
+// #else
+#define ECG_WAVE_DRAWLINE(x1, y1, x2, y2)  LCD_DrawLine((x1), (y1), (x2), (y2))
+#endif
+
 // 动态显示 ECG 波形（不清屏，只清除当前位置的旧波形）
 static void DisplayDynamicECGPoint(int16_t value)
 {
     // Y 轴映射 - 使用宏定义的网格区域
 
     // Y 轴范围
-    static int16_t min_value = -5000, max_value = 5000;
+    const int16_t min_value = -5000, max_value = 5000;
     if (value < min_value) value = min_value;
     if (value > max_value) value = max_value;
 
@@ -2861,7 +3073,7 @@ static void DisplayDynamicECGPoint(int16_t value)
     if (y > GRID_Y_END) y = GRID_Y_END;
 
     /* 加锁：保证整个"清除旧点+画新点"是原子操作，不被主线程插入 */
-    LCD_Lock();
+    //LCD_Lock();
     
     // 若到达右边界 → 重新从左边开始（不清屏）
     if (s_ecg_wave_x > GRID_X_END) {
@@ -2886,7 +3098,7 @@ static void DisplayDynamicECGPoint(int16_t value)
     POINT_COLOR = ECG_WAVE_COLOR;
     LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
 
-    LCD_Unlock();
+    //LCD_Unlock();
 
     // 保存当前位置的y值到历史数组（供下一轮清除使用）
     if (idx < ECG_WAVE_HISTORY_SIZE) {
@@ -2901,27 +3113,41 @@ static void DisplayDynamicECGPoint(int16_t value)
     s_ecg_wave_x += 2;
 }
 
-// 新的ECG数据显示函数 - 接收256字节数据并绘制波形
+// ECG数据显示函数 - 接收64字节数据并批量绘制波形
 void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
 {
-    // 不在ECG界面时不绘制
-    if (screen_id != SCREEN_ID_ECG) {
+    // 不在ECG界面或ECG已退出时不绘制
+    if (screen_id != SCREEN_ID_ECG || !g_ecg_display_active) {
         return;
     }
 
     // 验证输入参数
-    if (data == NULL || length != 128) {
+    if (data == NULL || length != ECG_DATA_PACKET_SIZE) {
         LOGD("Invalid ECG data: data=%p, length=%d", data, length);
         return;
     }
     
-    // 256字节 = 128个int16_t，每两字节一个样本，低字节在前（Little-Endian）
-    // 手动解析避免对齐问题
-    for (int i = 0; i < 64; i++) {
+    // 用于收集绘制的线段
+    static EcgLineSegment segments[ECG_SAMPLES_PER_PACKET];
+    static uint16_t seg_count;
+    
+    // 记录每个 idx 对应的 segment 索引（用于边清除边绘制）
+    static uint8_t idx_to_seg[ECG_WAVE_HISTORY_SIZE];
+    memset(idx_to_seg, 0xFF, sizeof(idx_to_seg));  // 0xFF 表示无对应线段
+    
+    seg_count = 0;
+    
+    // 需要清除的列（用位数组标记，每个idx对应2列）
+    static uint8_t clear_mask[(ECG_WAVE_HISTORY_SIZE + 7) / 8];
+    memset(clear_mask, 0, sizeof(clear_mask));
+    uint16_t clear_count = 0;
+    
+    // 第一步：解析所有数据点，收集需要清除的列和绘制线段
+    for (int i = 0; i < ECG_SAMPLES_PER_PACKET; i++) {
         int16_t value = (int16_t)((uint16_t)data[i * 2] | ((uint16_t)data[i * 2 + 1] << 8));
         
-        // Y 轴映射 - 使用宏定义的网格区域
-        static int16_t min_value = -6000, max_value = 6000;
+        // Y 轴映射
+        const int16_t min_value = -6000, max_value = 6000;
         if (value < min_value) value = min_value;
         if (value > max_value) value = max_value;
 
@@ -2931,13 +3157,9 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
         uint16_t y = GRID_Y_START + GRID_PIXEL_HEIGHT - 
                      (uint16_t)(((int32_t)(value - min_value) * GRID_PIXEL_HEIGHT) / range);
         
-        // 限制 Y 坴标在显示区间内
         if (y < GRID_Y_START) y = GRID_Y_START;
         if (y > GRID_Y_END) y = GRID_Y_END;
 
-        /* 加锁：保证整个"清除旧点+画新点"是原子操作 */
-        //LCD_Lock();
-        
         // 若到达右边界 → 重新从左边开始
         if (s_ecg_wave_x > GRID_X_END) {
             s_ecg_wave_x = GRID_X_START;
@@ -2945,29 +3167,38 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
             s_ecg_prev_y = (GRID_Y_START + GRID_Y_END) / 2;
         }
 
-        // 计算当前位置的索引
         uint16_t idx = (s_ecg_wave_x - GRID_X_START) / 2;
         
-        // 检查该位置是否有上一轮的旧波形，如果有则清除
-        if (idx < ECG_WAVE_HISTORY_SIZE && 
+        // 标记需要清除的列（如果该位置有旧波形）
+        if (idx < ECG_WAVE_HISTORY_SIZE &&
             ecg_wave_y_history[idx] != ECG_WAVE_Y_INVALID &&
             ecg_wave_prev_y_history[idx] != ECG_WAVE_Y_INVALID) {
-            // 清除旧的波形线段（使用记录的精确端点）
-            RestoreGridLine(ecg_wave_prev_x_history[idx], ecg_wave_prev_y_history[idx], 
-                            s_ecg_wave_x, ecg_wave_y_history[idx]);
+            // 只标记当前位置，不计算线段范围
+            if (!(clear_mask[idx / 8] & (1 << (idx % 8)))) {
+                clear_mask[idx / 8] |= (1 << (idx % 8));
+                clear_count++;
+            }
         }
-
-        // 设置画笔颜色为红色并画新线段
-        POINT_COLOR = ECG_WAVE_COLOR;
-        LCD_DrawLine(s_ecg_prev_x, s_ecg_prev_y, s_ecg_wave_x, y);
-
-        //LCD_Unlock();
-
-        // 保存当前位置的y值到历史数组（供下一轮清除使用）
+        
+        // 收集绘制线段
+        if (seg_count < ECG_SAMPLES_PER_PACKET) {
+            segments[seg_count].x1 = s_ecg_prev_x;
+            segments[seg_count].y1 = s_ecg_prev_y;
+            segments[seg_count].x2 = s_ecg_wave_x;
+            segments[seg_count].y2 = y;
+            
+            // 记录 idx 到 segment 的映射
+            if (idx < ECG_WAVE_HISTORY_SIZE) {
+                idx_to_seg[idx] = seg_count;
+            }
+            seg_count++;
+        }
+        
+        // 更新历史记录
         if (idx < ECG_WAVE_HISTORY_SIZE) {
-            ecg_wave_prev_x_history[idx] = s_ecg_prev_x;  // 记录起点x坐标
-            ecg_wave_prev_y_history[idx] = s_ecg_prev_y;  // 记录起点y坐标
-            ecg_wave_y_history[idx] = y;                   // 记录终点y坐标
+            ecg_wave_prev_x_history[idx] = s_ecg_prev_x;
+            ecg_wave_prev_y_history[idx] = s_ecg_prev_y;
+            ecg_wave_y_history[idx] = y;
         }
 
         // 更新位置
@@ -2975,9 +3206,95 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
         s_ecg_prev_y = y;
         s_ecg_wave_x += 2;
     }
+    
+    // 第二步：边清除边绘制（合并相邻idx为4列批量清除，减少SPI通讯次数）
+    POINT_COLOR = ECG_WAVE_COLOR;
+    for (uint16_t idx = 0; idx < ECG_WAVE_HISTORY_SIZE; idx++) {
+        bool cur_clear = (clear_mask[idx / 8] & (1 << (idx % 8))) != 0;
+        if (!cur_clear) continue;
+
+        uint16_t x = GRID_X_START + idx * 2;
+
+        // 检查下一个idx是否也需要清除，且4列不超出边界
+        bool next_clear = false;
+        if ((idx + 1) < ECG_WAVE_HISTORY_SIZE && (x + 4) <= (GRID_X_END + 1)) {
+            next_clear = (clear_mask[(idx + 1) / 8] & (1 << ((idx + 1) % 8))) != 0;
+        }
+
+        if (next_clear) {
+            // 合并：4列一次清除，节省一次BlockWrite命令
+            EcgBatchRestoreColumns(x, 4);
+
+            // 绘制当前位置的线段
+            if (idx_to_seg[idx] != 0xFF) {
+                uint8_t seg_idx = idx_to_seg[idx];
+                ECG_WAVE_DRAWLINE(segments[seg_idx].x1, segments[seg_idx].y1,
+                                  segments[seg_idx].x2, segments[seg_idx].y2);
+                //k_sleep(K_MSEC(ECG_RENDER_INTERVAL_MS));  // 流动动画节拍
+                // 状态变化（导联脱落 / 退出 ECG）时立即停绘，避免阻塞事件处理
+                if (screen_id != SCREEN_ID_ECG || !g_ecg_display_active ||
+                    g_ecg_lead_status != ECG_LEAD_STATUS_ON) {
+                    return;
+                }
+            }
+
+            // 绘制下一个位置的线段
+            if (idx_to_seg[idx + 1] != 0xFF) {
+                uint8_t seg_idx = idx_to_seg[idx + 1];
+                ECG_WAVE_DRAWLINE(segments[seg_idx].x1, segments[seg_idx].y1,
+                                  segments[seg_idx].x2, segments[seg_idx].y2);
+							k_sleep(K_MSEC(2));
+                //k_sleep(K_MSEC(ECG_RENDER_INTERVAL_MS));  // 流动动画节拍
+                if (screen_id != SCREEN_ID_ECG || !g_ecg_display_active ||
+                    g_ecg_lead_status != ECG_LEAD_STATUS_ON) {
+                    return;
+                }
+            }
+
+            idx++;  // 跳过已处理的下一个idx
+        } else {
+            // 单独：2列清除
+            EcgBatchRestoreColumns(x, 2);
+
+            // 绘制当前位置的线段
+            if (idx_to_seg[idx] != 0xFF) {
+                uint8_t seg_idx = idx_to_seg[idx];
+                ECG_WAVE_DRAWLINE(segments[seg_idx].x1, segments[seg_idx].y1,
+                                  segments[seg_idx].x2, segments[seg_idx].y2);
+                //k_sleep(K_MSEC(ECG_RENDER_INTERVAL_MS));  // 流动动画节拍
+                if (screen_id != SCREEN_ID_ECG || !g_ecg_display_active ||
+                    g_ecg_lead_status != ECG_LEAD_STATUS_ON) {
+                    return;
+                }
+            }
+        }
+
+    
+    }
+        
+    // 第三步：绘制未被清除位置的线段（新位置，无旧波形需要清除）
+    for (uint16_t seg = 0; seg < seg_count; seg++) {
+        // 找到该线段对应的 idx
+        uint16_t x2 = segments[seg].x2;
+        uint16_t idx = (x2 - GRID_X_START) / 2;
+            
+        // 如果该位置没有被清除过，说明是新位置，需要绘制
+        if (idx < ECG_WAVE_HISTORY_SIZE && 
+            !(clear_mask[idx / 8] & (1 << (idx % 8)))) {
+            ECG_WAVE_DRAWLINE(segments[seg].x1, segments[seg].y1,
+                              segments[seg].x2, segments[seg].y2);
+            //k_sleep(K_MSEC(ECG_RENDER_INTERVAL_MS));  // 流动动画节拍
+            if (screen_id != SCREEN_ID_ECG || !g_ecg_display_active ||
+                g_ecg_lead_status != ECG_LEAD_STATUS_ON) {
+                return;
+            }
+        }
+            
+    }
+        
 }
 
-// ECG倒计时显示函?? - 只更新数字部??
+// ECG倒计时显示函数 - 只更新数字部分
 static void EcgShowCountdown(void)
 {
     uint8_t strbuf[32];
@@ -2991,7 +3308,7 @@ static void EcgShowCountdown(void)
     LCD_MeasureString(prefix, &prefix_w, &prefix_h);
     
     if (s_ecg_countdown_first_show) {
-        // 第一次显示完整文??
+        // 第一次显示完整文本
         LCD_Fill(0, ECG_COUNTDOWN_Y, LCD_WIDTH, 30, BLACK);
         if (s_ecg_countdown_seconds > 0) {
             sprintf(strbuf, "Testing Wait %ds", s_ecg_countdown_seconds);
@@ -3003,16 +3320,16 @@ static void EcgShowCountdown(void)
         LCD_ShowString((LCD_WIDTH - total_w) / 2, ECG_COUNTDOWN_Y, strbuf);
         s_ecg_countdown_first_show = false;
     } else {
-        // 后续只更新数字部??
+        // 后续只更新数字部分
         if (s_ecg_countdown_seconds > 0) {
             // 计算数字区域的X坐标（居中）
             sprintf(strbuf, "%d", s_ecg_countdown_seconds);
             LCD_MeasureString(strbuf, &num_w, &num_h);
-            total_w = prefix_w + num_w + 8; // 8??"s"的宽度估??
+            total_w = prefix_w + num_w + 9; // 8+"s"的宽度估算
             start_x = (LCD_WIDTH - total_w) / 2 + prefix_w;
             
             // 清除固定宽度的数字区域（足以覆盖"60s"的最大宽度）
-            // 测量"60s"的宽度作为最大清除区??
+            // 测量"60s"的宽度作为最大清除区域
             uint16_t max_num_w, max_h;
             LCD_MeasureString("60s", &max_num_w, &max_h);
             LCD_Fill(start_x - 2, ECG_COUNTDOWN_Y, max_num_w + 4, prefix_h, BLACK);
@@ -3030,6 +3347,23 @@ static void EcgShowCountdown(void)
             LCD_ShowString((LCD_WIDTH - total_w) / 2, ECG_COUNTDOWN_Y, strbuf);
         }
     }
+    
+    LCD_SetFontSize(FONT_SIZE_20);
+    POINT_COLOR = WHITE;
+
+    sprintf(strbuf, "HR:%d", g_ecg_health_data.hr);
+    LCD_MeasureString(strbuf, &num_w, &num_h);
+    uint16_t hr_x = 40;
+    uint16_t hr_y = LCD_HEIGHT - num_h - 25;
+    LCD_Fill(hr_x - 5, hr_y, num_w + 10, num_h + 5, BLACK);
+    LCD_ShowString(hr_x, hr_y, strbuf);
+
+    sprintf(strbuf, "HRV:%d", g_ecg_health_data.hrv);
+    LCD_MeasureString(strbuf, &num_w, &num_h);
+    uint16_t hrv_x = LCD_WIDTH - num_w - 50;
+    uint16_t hrv_y = LCD_HEIGHT - num_h - 25;
+    LCD_Fill(hrv_x - 5, hrv_y, num_w + 10, num_h + 5, BLACK);
+    LCD_ShowString(hrv_x, hrv_y, strbuf);
 }
 
 // 初始化ECG显示
@@ -3056,7 +3390,7 @@ void EcgDisplayInit(void)
     }
     
     // 初始化并显示倒计??
-    s_ecg_countdown_seconds = 35;
+    s_ecg_countdown_seconds = 30;
     s_ecg_countdown_first_show = true;
     EcgShowCountdown();
     
@@ -3104,11 +3438,17 @@ void EcgScreenProcess(void)
 		IdleShowSignal();
 		IdleShowNetMode();
 		IdleShowBatSoc();
-		EcgShowStatus();
-		// 初始化ECG显示
-		EcgDisplayInit();
-		// Reset lead status to unknown when entering ECG screen
+		// Reset lead status and display phase when entering ECG screen
 		g_ecg_lead_status = ECG_LEAD_STATUS_UNKNOWN;
+		g_ecg_display_phase = ECG_DISPLAY_PREPARE;
+		g_ecg_lead_on_ready = false;
+		g_ecg_lead_off_timeout = false;
+		// Stop lead-on/off timers in case they're still running from a previous session
+		k_timer_stop(&ecg_lead_on_timer);
+		k_timer_stop(&ecg_lead_off_timer);
+		// Disable waveform drawing during prepare phase
+		g_ecg_display_active = false;
+		EcgShowStatus();
 		break;
 		
 	case SCREEN_ACTION_UPDATE:
@@ -3140,7 +3480,56 @@ void EcgScreenProcess(void)
 		if(scr_msg[SCREEN_ID_ECG].para&SCREEN_EVENT_UPDATE_ECG_LEAD)
 		{
 			scr_msg[SCREEN_ID_ECG].para &= (~SCREEN_EVENT_UPDATE_ECG_LEAD);
-			EcgShowLeadStatus();
+
+			if(g_ecg_display_phase == ECG_DISPLAY_PREPARE && g_ecg_lead_on_ready)
+			{
+				// Switch to waveform display after 2s lead on detected	
+				g_ecg_display_phase = ECG_DISPLAY_WAVE;
+				// Enable waveform drawing
+				g_ecg_display_active = true;
+				LCD_Clear(BLACK);
+				IdleShowSignal();
+				IdleShowNetMode();
+				IdleShowBatSoc();
+				EcgDisplayInit();
+			}
+			else if(g_ecg_display_phase == ECG_DISPLAY_WAVE && g_ecg_lead_off_timeout)
+			{
+				// Lead off for 1s during waveform display, return to prepare screen
+				g_ecg_display_active = false;
+				g_ecg_display_phase = ECG_DISPLAY_PREPARE;
+				g_ecg_lead_on_ready = false;
+				g_ecg_lead_off_timeout = false;
+
+				// Stop countdown timer and clear waveform state
+				k_timer_stop(&ecg_countdown_timer);
+				EcgDisplayDeinit();
+
+				// Reset waveform drawing state
+				s_ecg_wave_x = ECG_WAVE_X_START;
+				s_ecg_prev_x = ECG_WAVE_X_START;
+				s_ecg_prev_y = ECG_WAVE_Y_START + (uint16_t)(ECG_WAVE_HEIGHT * 0.5);
+
+				for (uint16_t i = 0; i < ECG_WAVE_HISTORY_SIZE; i++) {
+					ecg_wave_y_history[i] = ECG_WAVE_Y_INVALID;
+					ecg_wave_prev_x_history[i] = ECG_WAVE_Y_INVALID;
+					ecg_wave_prev_y_history[i] = ECG_WAVE_Y_INVALID;
+				}
+
+				ecg_local_read_idx = 0;
+				ecg_local_write_idx = 0;
+
+				// Show prepare screen UI
+				LCD_Clear(BLACK);
+				IdleShowSignal();
+				IdleShowNetMode();
+				IdleShowBatSoc();
+				EcgShowStatus();
+			}
+			else if(g_ecg_display_phase == ECG_DISPLAY_WAVE)
+			{
+				EcgShowLeadStatus();
+			}
 		}
 		break;
 	}
@@ -3153,28 +3542,53 @@ static void EcgCountdownTimerCallBack(struct k_timer *timer_id)
 {
     if (s_ecg_countdown_seconds > 0) {
         s_ecg_countdown_seconds--;
-        // 只在ECG屏幕可见时发送更新事??
+        // 只在ECG屏幕可见时发送更新事件
         if (screen_id == SCREEN_ID_ECG) {
             scr_msg[SCREEN_ID_ECG].act = SCREEN_ACTION_UPDATE;
             scr_msg[SCREEN_ID_ECG].para |= SCREEN_EVENT_UPDATE_ECG_TIMER;  
         }
     }
     
-    // 如果倒计时结束，停止定时??
+    // 如果倒计时结束，停止定时器并发送停止测量命令
     if (s_ecg_countdown_seconds == 0) {
         k_timer_stop(&ecg_countdown_timer);
+        MenuStopECG();
     }
+}
+
+// 导联脱落快速通道立即冻结波形绘制：置位g_ecg_display_active为false，
+// 使正在/即将进入EcgDisplayProcessData的路径在入口处立即return，
+// 避免脱落过渡期的乱波数据被继续绘制到屏幕上造成"花屏"观感。
+// 可在ISR或主循环上下文调用（仅写入volatile标志，安全）。
+void EcgHaltDisplay(void)
+{
+	g_ecg_display_active = false;
 }
 
 void ExitEcgScreen(void)
 {
 	LOGD("Exit ECG screen");
 
+	// 立即禁用ECG绘制，阻断正在进行的EcgDisplayProcessData
+	g_ecg_display_active = false;
+
+	// 停止导联检测定时器
+	k_timer_stop(&ecg_lead_on_timer);
+	k_timer_stop(&ecg_lead_off_timer);
+
+	// 重置ECG显示阶段和导联检测状态
+	g_ecg_display_phase = ECG_DISPLAY_PREPARE;
+	g_ecg_lead_on_ready = false;
+	g_ecg_lead_off_timeout = false;
+
 	// 停止倒计时定时器
 	k_timer_stop(&ecg_countdown_timer);
 
 	// 停止ECG采集
 	MenuStopECG();
+
+	// 立即清空UART接收缓存，丢弃可能积压的ECG数据
+	ClearUartReceCache();
 
 	// 清理ECG显示（停止画图）
 	EcgDisplayDeinit();
@@ -3212,22 +3626,37 @@ void EnterEcgScreen(void)
 	if(screen_id == SCREEN_ID_ECG)
 		return;
 
-	k_timer_stop(&mainmenu_timer);
 #ifdef CONFIG_PPG_SUPPORT
-	k_timer_stop(&ppg_status_timer);
+	// 整点测量运行中时，与血压界面保持一致：提示"Sensor is running"并退出
+	if(PPGIsWorkingTiming())
+	{
+		notify_infor infor = {0};
+
+		infor.x = 0;
+		infor.y = 0;
+		infor.w = LCD_WIDTH;
+		infor.h = LCD_HEIGHT;
+		infor.align = NOTIFY_ALIGN_CENTER;
+		infor.type = NOTIFY_TYPE_POPUP;
+		infor.img_count = 0;
+		StrCpyByID(infor.text, STR_ID_SENSOR_IS_RUNNING);
+		DisplayPopUp(infor);
+		return;
+	}
 #endif
-#ifdef CONFIG_TEMP_SUPPORT
-	k_timer_stop(&temp_status_timer);
-#endif
+
+	k_timer_stop(&mainmenu_timer);
 
 #ifdef CONFIG_ANIMATION_SUPPORT
 	AnimaStop();
 #endif
 #ifdef CONFIG_TEMP_SUPPORT
+	k_timer_stop(&temp_status_timer);
 	if(TempIsWorking()&&!TempIsWorkingTiming())
 		MenuStopTemp();
 #endif
 #ifdef CONFIG_PPG_SUPPORT
+	k_timer_stop(&ppg_status_timer);
 	if(IsInPPGScreen()&&!PPGIsWorkingTiming())
 		MenuStopPPG();
 #endif
@@ -3241,6 +3670,9 @@ void EnterEcgScreen(void)
 	screen_id = SCREEN_ID_ECG;	
 	scr_msg[SCREEN_ID_ECG].act = SCREEN_ACTION_ENTER;
 	scr_msg[SCREEN_ID_ECG].status = SCREEN_STATUS_CREATING;
+
+	// 准备阶段不启用波形绘制，等导联检测2s ON后再启用
+	g_ecg_display_active = false;
 
 #ifdef CONFIG_SYNC_SUPPORT
 	SetLeftKeyUpHandler(EnterSyncDataScreen);
@@ -3273,7 +3705,7 @@ void EnterEcgScreen(void)
   #endif
 #endif
 	// 直接启动ECG测量
-	MenuStartECG();
+	MenuStartECG(global_settings.wear_way);
 }
 
 #endif

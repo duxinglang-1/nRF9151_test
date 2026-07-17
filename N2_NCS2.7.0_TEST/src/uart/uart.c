@@ -29,6 +29,9 @@
 #endif
 #include "screen.h"
 #include "inner_flash.h"
+#ifdef CONFIG_ECG_SUPPORT
+#include "ecg.h"
+#endif
 #ifdef CONFIG_WIFI_SUPPORT
 #include "esp8266.h"
 #endif
@@ -319,6 +322,14 @@ bool ReceCacheIsEmpty(void)
 		return false;
 }
 
+// 清空UART接收缓存，用于ECG停止时丢弃积压数据
+void ClearUartReceCache(void)
+{
+	delete_all_from_cache(&uart_rece_cache);
+	uart_rece_len = 0;
+	memset(uart_rx_buf, 0, sizeof(uart_rx_buf));
+}
+
 void UartReceFrameData(uint8_t *data, uint32_t datalen)
 {
 	int ret;
@@ -435,6 +446,11 @@ static void UartReceDataCallBack(struct k_timer *timer_id)
 static void UartReceFrameCallBack(struct k_timer *timer_id)
 {
 	//uart_rece_frame_flag = true;
+#ifdef CONFIG_ECG_SUPPORT
+	// 导联脱落快速通道：在数据进 FIFO 前先扫一眼 LEAD_STATUS，
+	// 避免 EcgDisplayProcessData 的 k_sleep 期间 LEAD_OFF 排队等几秒
+	EcgPeekLeadStatus(uart_rx_buf, uart_rece_len);
+#endif
 	UartReceFrameData(uart_rx_buf, uart_rece_len);
 	uart_rece_len = 0;
 }

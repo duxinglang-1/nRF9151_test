@@ -1,7 +1,7 @@
 /****************************************Copyright (c)************************************************
 ** File name:			    strdef.h
 ** Created by:				Biao.X
-** Created date:			2026-02-06 14:52:18
+** Created date:			2026-07-17 11:24:03
 ******************************************************************************************************/
 #ifndef __STRDEF_H__
 #define __STRDEF_H__
@@ -133,6 +133,9 @@ typedef enum
 	STR_ID_MAIN_MENU_SHUTDOWN,
 	STR_ID_MAIN_MENU_SETTINGS,
 	STR_ID_MAIN_MENU_FENCE,
+	STR_ID_WEAR_OPTIONS,
+	STR_ID_WEAR_LEFT,
+	STR_ID_WEAR_RIGHT,
 	STR_ID_MAX
 }RES_STRINGS_ID;
 

@@ -28,6 +28,9 @@
 #ifdef CONFIG_BLE_SUPPORT
 #include "Ble.h"
 #endif
+#ifdef CONFIG_ECG_SUPPORT
+#include "ecg.h"
+#endif
 #include "logger.h"
 
 //#define PPG_DEBUG
@@ -1147,6 +1150,22 @@ void StartPPG(PPG_DATA_TYPE data_type, PPG_TRIGGER_SOURCE trigger_type)
 			k_timer_start(&ppg_delay_start_timer, K_MSEC((NOTIFY_TIMER_INTERVAL+1)*1000), K_NO_WAIT);
 			return;
 		}
+
+	#ifdef CONFIG_ECG_SUPPORT
+		if(IsInEcgScreen())
+		{
+			// 整点测量到达，退出ECG测量并显示与血压界面一致的提示
+			ExitEcgScreen();
+
+			infor.img_count = 0;
+			StrCpyByID(infor.text, STR_ID_TIMING_MEARSURE_READY_START);
+			DisplayPopUp(infor);
+
+			g_ppg_data = data_type;
+			k_timer_start(&ppg_delay_start_timer, K_MSEC((NOTIFY_TIMER_INTERVAL+1)*1000), K_NO_WAIT);
+			return;
+		}
+	#endif
 
 		switch(data_type)
 		{

@@ -35,7 +35,7 @@
 #define MENU_OPT_STR_MAX	10
 #define MENU_NOTIFY_STR_MAX	32
 
-#define VERSION_STR	"1.0.0_60320"
+#define VERSION_STR	"1.0.0_60413"
 
 #ifdef FW_FOR_CN
 #define LANG_BRANCH	"C"
@@ -110,6 +110,13 @@ typedef enum
 
 typedef enum
 {
+	WEAR_WAY_LEFT,
+	WEAR_WAY_RIGHT,
+	WEAR_WAY_MAX
+}WEAR_WAY;
+
+typedef enum
+{
 	SETTINGS_MENU_MAIN,
 	SETTINGS_MENU_LANGUAGE,
 	SETTINGS_MENU_FACTORY_RESET,
@@ -117,6 +124,7 @@ typedef enum
 	SETTINGS_MENU_OTA,
 	SETTINGS_MENU_BRIGHTNESS,
 	SETTINGS_MENU_TEMP,
+	SETTINGS_MENU_WEAR,
 	SETTINGS_MENU_DEVICE,
 	SETTINGS_MENU_SIM,
 	SETTINGS_MENU_FW,
@@ -189,6 +197,7 @@ typedef struct
 	uint16_t target_steps;
 	uint32_t health_interval;
 	TEMP_UNIT temp_unit;
+	WEAR_WAY wear_way;
 	TIME_FORMAT time_format;
 	RES_LANGUAGES_ID language;
 	DATE_FORMAT date_format;

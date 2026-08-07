@@ -1385,3 +1385,33 @@ void SendVerCheckAskData(void)
 	NBSendVerCheckData(reply, strlen(reply));
 }
 
+#ifdef CONFIG_ECG_SUPPORT
+/*****************************************************************************
+ * FUNCTION
+ *  SendEcgWaveData
+ * DESCRIPTION
+ *  发送ECG波形数据
+ * PARAMETERS
+ *	
+ * RETURNS
+ *  Nothing
+ *****************************************************************************/
+void SendEcgWaveData(uint8_t frame_id, uint8_t frame_sum, sys_date_timer_t timestamp, uint8_t *data, uint32_t datalen)
+{
+	uint8_t reply[2048] = {0};
+	uint8_t tmpbuf[20] = {0};
+	uint32_t len;
+	
+	sprintf(reply, "%d,%d,%d,", frame_id, frame_sum, datalen);
+	len = strlen(reply);
+	memcpy(&reply[len], data, datalen);
+	len += datalen;
+	memcpy(&reply[len], ",", 1);
+	len += 1;
+	sprintf(tmpbuf, "%04d%02d%02d%02d%02d%02d", timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second);
+	memcpy(&reply[len], tmpbuf, strlen(tmpbuf));
+	len += strlen(tmpbuf);
+	
+	NBSendEcgWaveData(reply, len);
+}
+#endif

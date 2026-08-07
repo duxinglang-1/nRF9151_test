@@ -353,8 +353,8 @@ void LCD_SleepIn(void)
 	WriteComm(0x10);//Sleep in	
 	Delay(20);
 
-	gpio_pin_set(gpio_lcd, EN, 0);
-	gpio_pin_set(gpio_lcd, VBAT, 0);
+	//gpio_pin_set(gpio_lcd, EN, 0);
+	//gpio_pin_set(gpio_lcd, VBAT, 0);
 
 	lcd_is_sleeping = true;
 }

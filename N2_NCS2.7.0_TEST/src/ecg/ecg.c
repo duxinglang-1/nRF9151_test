@@ -34,6 +34,8 @@ static bool menu_start_ecg = false;
 static bool ft_start_ecg = false;
 static bool app_start_ecg = false;
 
+static uint8_t ecg_data_frame_index = 0;
+
 WEAR_WAY ecg_wear_option = WEAR_WAY_LEFT;
 
 // ECG lead status
@@ -47,6 +49,8 @@ static int64_t ecg_lead_on_timestamp = 0;
 #ifdef CONFIG_FACTORY_TEST_SUPPORT
 uint8_t ecg_test_info[256] = {0};
 #endif
+
+sys_date_timer_t ecg_measure_time = {0};
 
 static void ecg_lead_on_timerout(struct k_timer *timer_id);
 K_TIMER_DEFINE(ecg_lead_on_timer, ecg_lead_on_timerout, NULL);
@@ -158,8 +162,18 @@ void FTStartECG(void) { ft_start_ecg = true; }
 void FTStopECG(void) { ecg_stop_flag = true; }
 #endif
 
-void ECGDataProcess(uint8_t *data, uint32_t data_len) {
-  EcgDisplayProcessData(data, data_len);
+void ECGDataProcess(uint8_t *data, uint32_t data_len)
+{
+	EcgDisplayProcessData(data, data_len);
+
+	if(g_ecg_lead_on_ready && (data_len == ECG_DATA_PACKET_SIZE) && (data != NULL))
+	{
+		if(ecg_data_frame_index == 0)
+			memcpy(&ecg_measure_time, &date_time, sizeof(sys_date_timer_t));
+
+		ecg_data_frame_index++;
+		SendEcgWaveData(ecg_data_frame_index, ECG_CHECK_MENU, ecg_measure_time, data, data_len);
+	}
 }
 
 void UartECGEventHandle(uint8_t *data, uint32_t data_len) {
@@ -317,32 +331,39 @@ void EcgPeekLeadStatus(const uint8_t *data, uint32_t data_len)
 
 void ECG_init(void) {}
 
-void ECGMsgProcess(void) {
-  if (menu_start_ecg) {
-    StartECG(ECG_TRIGGER_BY_MENU);
-    menu_start_ecg = false;
-  }
+void ECGMsgProcess(void)
+{
+	if(menu_start_ecg)
+	{
+		StartECG(ECG_TRIGGER_BY_MENU);
+		menu_start_ecg = false;
+	}
 
-  if (app_start_ecg) {
-    StartECG(ECG_TRIGGER_BY_APP);
-    app_start_ecg = false;
-  }
+	if(app_start_ecg)
+	{
+		StartECG(ECG_TRIGGER_BY_APP);
+		app_start_ecg = false;
+	}
 
-  if (ft_start_ecg) {
-    StartECG(ECG_TRIGGER_BY_FT);
-    ft_start_ecg = false;
-  }
+	if(ft_start_ecg)
+	{
+		StartECG(ECG_TRIGGER_BY_FT);
+		ft_start_ecg = false;
+	}
 
-  if (ecg_start_flag) {
-    ecg_start_flag = false;
+	if(ecg_start_flag)
+	{
+		CopcsSendData(UART_DATA_ECG, COM_ECG_SET_OPEN, strlen(COM_ECG_SET_OPEN));
+		ecg_start_flag = false;
+	}
 
-    CopcsSendData(UART_DATA_ECG, COM_ECG_SET_OPEN, strlen(COM_ECG_SET_OPEN));
-  }
+	if(ecg_stop_flag)
+	{
+		CopcsSendData(UART_DATA_ECG, COM_ECG_SET_CLOSE, strlen(COM_ECG_SET_CLOSE));
+		ecg_stop_flag = false;
+		ecg_data_frame_index = 0;
 
-  if (ecg_stop_flag) {
-    CopcsSendData(UART_DATA_ECG, COM_ECG_SET_CLOSE, strlen(COM_ECG_SET_CLOSE));
-    ecg_stop_flag = false;
-    // 清空UART接收缓存，丢弃积压的ECG数据，避免停止后继续绘制
-    ClearUartReceCache();
-  }
+		//清空UART接收缓存，丢弃积压的ECG数据，避免停止后继续绘制
+		ClearUartReceCache();
+	}
 }

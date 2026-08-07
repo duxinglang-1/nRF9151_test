@@ -2721,8 +2721,6 @@ void EcgShowStatus(void)
 #define ECG_WAVE_Y_START    75                  // 波形区域与网格顶部对??
 #define ECG_WAVE_HEIGHT     285                 // 波形区域高度与网格一??
 #define ECG_WAVE_COLOR      RED
-#define ECG_SAMPLES_PER_PACKET  32                  // 每包采样点数（0.25秒数据，32个int16_t）
-#define ECG_DATA_PACKET_SIZE    (ECG_SAMPLES_PER_PACKET * sizeof(int16_t))  // 64字节
 #define GRID_SMALL_COLOR    GRAY
 #define SMALL_GRID_SIZE     20                  // 小网格尺寸（格子内宽??
 #define GRID_LINE_WIDTH     2                   // 网格线宽??

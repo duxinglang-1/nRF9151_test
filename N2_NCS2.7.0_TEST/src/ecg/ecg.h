@@ -33,6 +33,9 @@
 #define ECG_CHECK_MENU				30
 #define ECG_CHECK_TIMELY			2
 
+#define ECG_SAMPLES_PER_PACKET  	32                  // 每包采样点数（0.25秒数据，32个int16_t）
+#define ECG_DATA_PACKET_SIZE    	(ECG_SAMPLES_PER_PACKET * sizeof(int16_t))  // 64字节
+
 typedef enum
 {
 	ECG_STATUS_PREPARE,

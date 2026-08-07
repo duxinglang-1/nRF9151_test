@@ -41,7 +41,7 @@
 #endif
 #include "logger.h"
 
-//#define NB_DEBUG
+#define NB_DEBUG
 
 #define MQTT_CONNECTED_KEEP_TIME	(60)
 
@@ -1724,6 +1724,34 @@ void NBSendPowerOffInfor(uint8_t *data, uint32_t datalen)
 #endif
 	MqttSendData(buf, strlen(buf), DATA_TRANSFER);
 }
+
+#ifdef CONFIG_ECG_SUPPORT
+void NBSendEcgWaveData(uint8_t *data, uint32_t datelen)
+{
+	uint8_t buf[2048] = {0};
+	uint8_t tmpbuf[20] = {0};
+	uint32_t len = 0;
+	
+	strcpy(buf, "{1:1:0:0:");
+	strcat(buf, g_imei);
+	strcat(buf, ":T35:");
+	len += strlen(buf);
+	memcpy(&buf[len], data, datelen);
+	len += datelen;
+	memcpy(&buf[len], ",", 1);
+	len += strlen(",");
+	memset(tmpbuf, 0, sizeof(tmpbuf));
+	GetSystemTimeSecString(tmpbuf);
+	memcpy(&buf[len], tmpbuf, strlen(tmpbuf));
+	len += strlen(tmpbuf);
+	memcpy(&buf[len], "}", strlen("}"));
+	len += strlen("}");
+#ifdef NB_DEBUG
+	LOGD("ecg data:%s", buf);
+#endif
+	MqttSendData(buf, len, DATA_TRANSFER);
+}
+#endif
 
 bool GetParaFromString(uint8_t *rece, uint32_t rece_len, uint8_t *cmd, uint8_t *data)
 {

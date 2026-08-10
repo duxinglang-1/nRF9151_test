@@ -1747,7 +1747,7 @@ void NBSendEcgWaveData(uint8_t *data, uint32_t datelen)
 	memcpy(&buf[len], "}", strlen("}"));
 	len += strlen("}");
 #ifdef NB_DEBUG
-	LOGD("ecg data:%s", buf);
+	LOGD("len:%d, ecg data:%s", len, buf);
 #endif
 	MqttSendData(buf, len, DATA_TRANSFER);
 }

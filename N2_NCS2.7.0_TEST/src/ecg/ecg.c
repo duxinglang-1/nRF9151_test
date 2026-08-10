@@ -35,6 +35,7 @@ static bool ft_start_ecg = false;
 static bool app_start_ecg = false;
 
 static uint8_t ecg_data_frame_index = 0;
+static uint8_t ecg_data_count = 0;
 
 WEAR_WAY ecg_wear_option = WEAR_WAY_LEFT;
 
@@ -164,16 +165,25 @@ void FTStopECG(void) { ecg_stop_flag = true; }
 
 void ECGDataProcess(uint8_t *data, uint32_t data_len)
 {
-	EcgDisplayProcessData(data, data_len);
-
 	if(g_ecg_lead_on_ready && (data_len == ECG_DATA_PACKET_SIZE) && (data != NULL))
 	{
-		if(ecg_data_frame_index == 0)
+		static uint8_t databuf[ECG_DATA_PACKET_SIZE*4] = {0};
+		
+		if((ecg_data_count == 0) && (ecg_data_frame_index == 0))
 			memcpy(&ecg_measure_time, &date_time, sizeof(sys_date_timer_t));
 
-		ecg_data_frame_index++;
-		SendEcgWaveData(ecg_data_frame_index, ECG_CHECK_MENU, ecg_measure_time, data, data_len);
+		memcpy(&databuf[(ecg_data_count++)*ECG_DATA_PACKET_SIZE], &data, data_len);
+		if(ecg_data_count == 4)
+		{
+			ecg_data_frame_index++;
+			SendEcgWaveData(ecg_data_frame_index, ECG_CHECK_MENU, ecg_measure_time, databuf, ECG_DATA_PACKET_SIZE*4);
+
+			memset(databuf, 0, sizeof(databuf));
+			ecg_data_count = 0;
+		}
 	}
+
+	EcgDisplayProcessData(data, data_len);
 }
 
 void UartECGEventHandle(uint8_t *data, uint32_t data_len) {
@@ -362,8 +372,9 @@ void ECGMsgProcess(void)
 		CopcsSendData(UART_DATA_ECG, COM_ECG_SET_CLOSE, strlen(COM_ECG_SET_CLOSE));
 		ecg_stop_flag = false;
 		ecg_data_frame_index = 0;
+		ecg_data_count = 0;
 
 		//清空UART接收缓存，丢弃积压的ECG数据，避免停止后继续绘制
-		ClearUartReceCache();
+		//ClearUartReceCache();
 	}
 }

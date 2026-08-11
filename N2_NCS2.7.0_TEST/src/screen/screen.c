@@ -74,8 +74,6 @@
 // External ECG lead status variable
 #ifdef CONFIG_ECG_SUPPORT
 extern ECG_LEAD_STATUS g_ecg_lead_status;
-extern struct k_timer ecg_lead_on_timer;
-extern struct k_timer ecg_lead_off_timer;
 #endif
 
 static uint8_t scr_index = 0;
@@ -3266,8 +3264,6 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
                 }
             }
         }
-
-    
     }
         
     // 第三步：绘制未被清除位置的线段（新位置，无旧波形需要清除）
@@ -3287,9 +3283,7 @@ void EcgDisplayProcessData(const uint8_t *data, uint16_t length)
                 return;
             }
         }
-            
     }
-        
 }
 
 // ECG倒计时显示函数 - 只更新数字部分
@@ -3441,9 +3435,6 @@ void EcgScreenProcess(void)
 		g_ecg_display_phase = ECG_DISPLAY_PREPARE;
 		g_ecg_lead_on_ready = false;
 		g_ecg_lead_off_timeout = false;
-		// Stop lead-on/off timers in case they're still running from a previous session
-		k_timer_stop(&ecg_lead_on_timer);
-		k_timer_stop(&ecg_lead_off_timer);
 		// Disable waveform drawing during prepare phase
 		g_ecg_display_active = false;
 		EcgShowStatus();
@@ -3550,7 +3541,7 @@ static void EcgCountdownTimerCallBack(struct k_timer *timer_id)
     // 如果倒计时结束，停止定时器并发送停止测量命令
     if (s_ecg_countdown_seconds == 0) {
         k_timer_stop(&ecg_countdown_timer);
-        MenuStopECG();
+        //MenuStopECG();
     }
 }
 
@@ -3570,9 +3561,8 @@ void ExitEcgScreen(void)
 	// 立即禁用ECG绘制，阻断正在进行的EcgDisplayProcessData
 	g_ecg_display_active = false;
 
-	// 停止导联检测定时器
-	k_timer_stop(&ecg_lead_on_timer);
-	k_timer_stop(&ecg_lead_off_timer);
+	// 停止ECG采集
+	MenuStopECG();
 
 	// 重置ECG显示阶段和导联检测状态
 	g_ecg_display_phase = ECG_DISPLAY_PREPARE;
@@ -3581,12 +3571,6 @@ void ExitEcgScreen(void)
 
 	// 停止倒计时定时器
 	k_timer_stop(&ecg_countdown_timer);
-
-	// 停止ECG采集
-	MenuStopECG();
-
-	// 立即清空UART接收缓存，丢弃可能积压的ECG数据
-	ClearUartReceCache();
 
 	// 清理ECG显示（停止画图）
 	EcgDisplayDeinit();
@@ -3597,12 +3581,10 @@ void ExitEcgScreen(void)
 	s_ecg_prev_y = ECG_WAVE_Y_START + (uint16_t)(ECG_WAVE_HEIGHT * 0.5);
 	
 	// 重置波形历史数组
-	for (uint16_t i = 0; i < ECG_WAVE_HISTORY_SIZE; i++) {
-		ecg_wave_y_history[i] = ECG_WAVE_Y_INVALID;
-		ecg_wave_prev_x_history[i] = ECG_WAVE_Y_INVALID;
-		ecg_wave_prev_y_history[i] = ECG_WAVE_Y_INVALID;
-	}
-
+	memset(ecg_wave_y_history, ECG_WAVE_Y_INVALID, ECG_WAVE_HISTORY_SIZE);
+	memset(ecg_wave_prev_x_history, ECG_WAVE_Y_INVALID, ECG_WAVE_HISTORY_SIZE);
+	memset(ecg_wave_prev_y_history, ECG_WAVE_Y_INVALID, ECG_WAVE_HISTORY_SIZE);
+	
 	ecg_local_read_idx = 0;
 	ecg_local_write_idx = 0;
 

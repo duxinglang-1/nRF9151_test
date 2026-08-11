@@ -30,7 +30,8 @@
 //#define ECG_ADS1292
 #define ECG_MAX86176
 
-#define ECG_CHECK_MENU				30
+#define ECG_CHECK_MENU				60
+#define ECG_CHECK_WAVE				30
 #define ECG_CHECK_TIMELY			2
 
 #define ECG_SAMPLES_PER_PACKET  	32                  // 每包采样点数（0.25秒数据，32个int16_t）

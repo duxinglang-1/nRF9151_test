@@ -221,11 +221,11 @@ void ECGDataProcess(uint8_t *data, uint32_t data_len)
 		if((ecg_data_count == 0) && (ecg_data_frame_index == 0))
 			memcpy(&ecg_measure_time, &date_time, sizeof(sys_date_timer_t));
 
-		memcpy(&databuf[(ecg_data_count++)*ECG_DATA_PACKET_SIZE], &data, data_len);
+		memcpy(&databuf[(ecg_data_count++)*ECG_DATA_PACKET_SIZE], data, data_len);
 		if(ecg_data_count == 4)
 		{
 			ecg_data_frame_index++;
-			//if(ecg_data_frame_index <= ECG_CHECK_WAVE)
+			if(ecg_data_frame_index <= ECG_CHECK_WAVE)
 				SendEcgWaveData(ecg_data_frame_index, ECG_CHECK_WAVE, ecg_measure_time, databuf, ECG_DATA_PACKET_SIZE*4);
 
 			memset(databuf, 0, sizeof(databuf));

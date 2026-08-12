@@ -1730,22 +1730,21 @@ void NBSendEcgWaveData(uint8_t *data, uint32_t datelen)
 {
 	uint8_t buf[2048] = {0};
 	uint8_t tmpbuf[20] = {0};
-	uint32_t len = 0;
+	uint32_t len;
 	
 	strcpy(buf, "{1:1:0:0:");
 	strcat(buf, g_imei);
 	strcat(buf, ":T35:");
-	len += strlen(buf);
+	len = strlen(buf);
 	memcpy(&buf[len], data, datelen);
 	len += datelen;
 	memcpy(&buf[len], ",", 1);
-	len += strlen(",");
-	memset(tmpbuf, 0, sizeof(tmpbuf));
+	len += 1;
 	GetSystemTimeSecString(tmpbuf);
 	memcpy(&buf[len], tmpbuf, strlen(tmpbuf));
 	len += strlen(tmpbuf);
-	memcpy(&buf[len], "}", strlen("}"));
-	len += strlen("}");
+	memcpy(&buf[len], "}", 1);
+	len += 1;
 #ifdef NB_DEBUG
 	LOGD("len:%d, ecg data:%s", len, buf);
 #endif
@@ -2677,7 +2676,7 @@ void SetNetWorkApn(uint8_t *imsi_buf)
 	}
 }
 
-void SetNwtWorkMqttBroker(uint8_t *imsi_buf)
+void SetNetWorkMqttBroker(uint8_t *imsi_buf)
 {
 	if(strncmp(imsi_buf, "460", strlen("460")) == 0)
 	{
@@ -2694,7 +2693,7 @@ void SetNwtWorkMqttBroker(uint8_t *imsi_buf)
 void SetNetWorkParaByPlmn(uint8_t *imsi)
 {
 	//SetNetWorkApn(imsi);
-	SetNwtWorkMqttBroker(imsi);
+	SetNetWorkMqttBroker(imsi);
 }
 
 void GetModemInfor(void)
